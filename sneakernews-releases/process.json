@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "srb",
+      "script": "index.js",
+      "watch": false,
+      "cron_restart": "*/1 * * * *"
+    }
+  ]
+}
