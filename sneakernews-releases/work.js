@@ -1,26 +1,12 @@
 const {setTimeout} = require('timers');
 const request = require('request-promise-native');
-const parse = require('./parse');
 const telegram = require('./telegram');
 const Post = require('./post');
+const getPosts = require('./posts');
 const locale = require('./locale');
 
-
-let posts = null;
-const parsePage = async () => {
-  if (!posts) {
-    console.log('Parsing needed');
-    posts = await parse();
-    setTimeout(() => {
-      posts = null;
-    }, 1000 * 60 * 5);
-  }
-
-  return posts;
-};
-
 module.exports = async user => {
-  const posts = await parsePage();
+  const posts = await getPosts();
   const todaysReleases = posts.filter(post => post.isReleaseToday());
   if (todaysReleases.length === 0) {
     return;
