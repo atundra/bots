@@ -5,7 +5,7 @@ const {setTime: userSetTime, register: registerUser} = require('./user');
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const SET_REGEXP = /\/set (\d\d)\:(\d\d) (\d\d)\:(\d\d)/;
+const SET_REGEXP = /\/set ([01]?[0-9]|2[0-3]):([0-5][0-9]) ([01]?[0-9]|2[0-3]):([0-5][0-9])/;
 
 bot.start(async ctx => {
   const {
