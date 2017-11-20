@@ -17,6 +17,23 @@ class Post {
         this.date.getMonth() === now.getMonth() &&
         this.date.getYear() === now.getYear();
 	}
+
+	/** @param {Array<Post>} posts */
+	static overall(posts) {
+		if (posts.length === 0) {
+			return null;
+		}
+
+		return posts.map(post => {
+			const {
+				name,
+				price,
+				url,
+		 	} = post;
+
+			return `${url ? `[${name}](${url})` : name}${price ? ` – ${price}` : ''}`;
+		}).join('\n');
+	}
 }
 
 module.exports = Post;

@@ -3,8 +3,7 @@
     {
       "name": "srb",
       "script": "index.js",
-      "watch": false,
-      "cron_restart": "0 10 * * *"
+      "watch": false
     }
   ]
 }
