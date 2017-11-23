@@ -75,4 +75,15 @@ module.exports = {
         return `You're not authorized. Send /start to register.`;
     }
   },
+
+  noReleasesToday(locale = 'en', params) {
+    switch (locale) {
+      case 'en':
+        return `No releases today.`;
+      case 'ru':
+        return `Сегодня нет релизов.`;
+      default:
+        return `No releases today.`;
+    }
+  },
 };

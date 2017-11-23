@@ -61,7 +61,12 @@ bot.command('get', async ctx => {
     return ctx.reply(locale.notRegistered(ctx.from.language_code));
   }
 
-  return work(user);
+  const result = await work(user);
+  if (!result) {
+    return ctx.reply(locale.noReleasesToday(user.lang));
+  }
+
+  return;
 });
 
 

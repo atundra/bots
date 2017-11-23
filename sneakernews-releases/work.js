@@ -28,4 +28,5 @@ module.exports = async user => {
     });
   }
   log(`Posts sended to user ${user.id}`);
+  return todaysReleases;
 };
