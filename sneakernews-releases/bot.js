@@ -11,7 +11,7 @@ const SET_REGEXP = /\/set ([01]?[0-9]|2[0-3]):([0-5][0-9]) ([01]?[0-9]|2[0-3]):(
 
 bot.on('message', (ctx, next) => {
   log('Message received', JSON.stringify(ctx.message));
-  return next;
+  return next();
 });
 bot.start(async ctx => {
   const {
