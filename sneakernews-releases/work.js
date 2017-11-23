@@ -18,12 +18,13 @@ module.exports = async user => {
     disable_web_page_preview: true,
   });
 
-  const promises = todaysReleases.map(post => {
-    return telegram.sendPhoto(user.id, post.imgUrl, {
-      caption: post.name,
-      disable_notification: true,
-    });
-  });
-  await Promise.all(promises);
+  await todaysReleases.reduce((chain, post) => {
+    return chain.then(() => {
+      return telegram.sendPhoto(user.id, post.imgUrl, {
+        caption: post.name,
+        disable_notification: true,
+      });
+    })
+  }, Promise.resolve());
   console.log(`Posts sended to user ${user.id}`);
 };
