@@ -1,12 +1,18 @@
 require('dotenv').config();
 const Telegraf = require('telegraf');
 const locale = require('./locale');
-const {setTime: userSetTime, register: registerUser} = require('./user');
+const log = require('./log');
+const {setTime: userSetTime, register: registerUser, getById: getUserById} = require('./user');
+const work = require('./work');
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const SET_REGEXP = /\/set ([01]?[0-9]|2[0-3]):([0-5][0-9]) ([01]?[0-9]|2[0-3]):([0-5][0-9])/;
 
+bot.on('message', (ctx, next) => {
+  log('Message received', JSON.stringify(ctx.message));
+  return next;
+});
 bot.start(async ctx => {
   const {
     id,
@@ -49,5 +55,14 @@ bot.command('set', async ctx => {
   await userSetTime(id, subscriptionHour % 24, +expectedMinute);
   return ctx.reply(locale.timeUpdated(lang));
 });
+bot.command('get', async ctx => {
+  const user = await getUserById(ctx.from.id);
+  if (!user) {
+    return ctx.reply(locale.notRegistered(ctx.from.language_code));
+  }
+
+  return work(user);
+});
+
 
 module.exports = bot.startPolling.bind(bot);

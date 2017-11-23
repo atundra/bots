@@ -4,8 +4,11 @@ const telegram = require('./telegram');
 const Post = require('./post');
 const getPosts = require('./posts');
 const locale = require('./locale');
+const log = require('./log');
+
 
 module.exports = async user => {
+  log(`Start sending posts to user ${user.id}`);
   const posts = await getPosts();
   const todaysReleases = posts.filter(post => post.isReleaseToday());
   if (todaysReleases.length === 0) {
@@ -18,13 +21,11 @@ module.exports = async user => {
     disable_web_page_preview: true,
   });
 
-  await todaysReleases.reduce((chain, post) => {
-    return chain.then(() => {
-      return telegram.sendPhoto(user.id, post.imgUrl, {
-        caption: post.name,
-        disable_notification: true,
-      });
-    })
-  }, Promise.resolve());
-  console.log(`Posts sended to user ${user.id}`);
+  for (let post of todaysReleases) {
+    await telegram.sendPhoto(user.id, post.imgUrl, {
+      caption: post.name,
+      disable_notification: true,
+    });
+  }
+  log(`Posts sended to user ${user.id}`);
 };

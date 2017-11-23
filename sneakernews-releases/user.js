@@ -43,4 +43,8 @@ module.exports = {
   async get(condition) {
     return User.findAll(condition);
   },
+
+  async getById(id) {
+    return User.findOne({where: {id}});
+  },
 };

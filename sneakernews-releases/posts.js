@@ -1,4 +1,5 @@
 const parse = require('./parse');
+const log = require('./log');
 
 
 const getPosts = () => {
@@ -6,7 +7,7 @@ const getPosts = () => {
 
   return async () => {
     if (!posts) {
-      console.log('Parsing needed');
+      log('Parsing needed');
       posts = await parse();
       setTimeout(() => {
         posts = null;

@@ -64,4 +64,15 @@ module.exports = {
         return `Today's releases:\n\n${params.RELEASES}`;
     }
   },
+
+  notRegistered(locale = 'en', params) {
+    switch (locale) {
+      case 'en':
+        return `You're not authorized. Send /start to register.`;
+      case 'ru':
+        return `Вы не авторизованы. Отправьте /start чтобы зарегистрироваться.`;
+      default:
+        return `You're not authorized. Send /start to register.`;
+    }
+  },
 };

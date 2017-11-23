@@ -4,7 +4,7 @@ const runCron = require('./cron');
 
 
 const main = async _ => {
-  await dbSync();
+  // await dbSync();
   runBot();
   await runCron();
 }
