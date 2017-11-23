@@ -4,7 +4,7 @@ module.exports = {
       case 'en':
         return 'Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /settime.';
       case 'ru':
-        return 'Привет! Я буду присылыать тебе подборку релизов кроссовок каждый день в 10 утра по московскому времени.\nЕсли хочешь получать рассылку в другое время, используй команду /settime';
+        return 'Привет! Я буду присылыать тебе подборку релизов кроссовок каждый день в 10 утра по московскому времени.\nЕсли хочешь получать рассылку в другое время, используй команду /settime.';
       default:
         return 'Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /settime.';
     }
