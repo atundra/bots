@@ -1,13 +1,20 @@
 require('dotenv').config();
+const Extra = require('telegraf/extra');
 const Telegraf = require('telegraf');
 const locale = require('./locale');
 const log = require('./log');
 const {setTime: userSetTime, register: registerUser, getById: getUserById} = require('./user');
 const work = require('./work');
+const {getTimezones} = require('./timezones');
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const SET_REGEXP = /\/set ([01]?[0-9]|2[0-3]):([0-5][0-9]) ([01]?[0-9]|2[0-3]):([0-5][0-9])/;
+
+const Command = {
+  GET_TIMEZONE_FROM_TIME: 'timezonebytime',
+  SELECT_TIMEZONE: 'selecttimezone',
+};
 
 bot.on('message', (ctx, next) => {
   log('Message received', JSON.stringify(ctx.message));
@@ -30,6 +37,23 @@ bot.start(async ctx => {
   return ctx.reply(locale.welcome(language_code));
 })
 bot.command('settime', ctx => ctx.replyWithMarkdown(locale.setTime(ctx.from.language_code)));
+bot.command('settimezone', ctx => {
+  const message = locale.setTimeZone(ctx.from.language_code, {
+    GET_TIMEZONE_FROM_TIME_COMMAND: Command.GET_TIMEZONE_FROM_TIME,
+    SELECT_TIMEZONE_COMMAND: Command.SELECT_TIMEZONE,
+  });
+
+  return ctx.reply(message, Extra.markup(markup => {
+    return markup.keyboard([
+      markup.locationRequestButton('Отправить геолокацию'),
+    ]).resize().oneTime();
+  }))
+});
+bot.command(Command.SELECT_TIMEZONE, async ctx => {
+  return ctx.reply(locale.selectTimeZone(ctx.from.language_code), Extra.markup(markup => {
+    return markup.keyboard(getTimezones());
+  }));
+});
 bot.command('set', async ctx => {
   const text = ctx.message.text.trim();
   const lang = ctx.from.language_code;
