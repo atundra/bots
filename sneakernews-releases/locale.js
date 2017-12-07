@@ -32,25 +32,25 @@ module.exports = {
     }
   },
 
-  timeUpdated(locale = 'en') {
+  timeUpdated(locale = 'en', params) {
     switch (locale) {
       case 'en':
-        return 'The time for receiving the newsletter has been changed.';
+        return 'You will receive the newsletter at ${params.RECEIVING_TIME}.';
       case 'ru':
-        return 'Время получения рассылки изменено.';
+        return 'Вы будете получать рассылку в ${params.RECEIVING_TIME}.';
       default:
-        return 'The time for receiving the newsletter has been changed.';
+        return 'You will receive the newsletter at ${params.RECEIVING_TIME}.';
     }
   },
 
-  alreadyRegistered(locale = 'en') {
+  alreadyRegistered(locale = 'en', params) {
     switch (locale) {
       case 'en':
-        return 'You are already subscribed. If you want to change the time for receiving news, use command /settime.';
+        return `You are already subscribed. If you want to change the time for receiving news, use command /${params.SET_TIME_COMMAND}.`;
       case 'ru':
-        return 'Вы уже подписаны на рассылку. Если вы хотите изменить время получения рассылки, используйте команду /settime.';
+        return `Вы уже подписаны на рассылку. Если вы хотите изменить время получения рассылки, используйте команду /${params.SET_TIME_COMMAND}.`;
       default:
-        return 'You are already subscribed. If you want to change the time for receiving news, use command /settime.';
+        return `You are already subscribed. If you want to change the time for receiving news, use command /${params.SET_TIME_COMMAND}.`;
     }
   },
 
@@ -94,14 +94,35 @@ module.exports = {
       // case 'ru':
       //   return 'Сперва нужно понять, в каком часовом поясе вы находитесь. Варианты – отправить геолокацию, указать часовой пояс, указать текущее время';
       default:
-        return `Сперва нужно понять, в каком часовом поясе вы находитесь.\n\nСамый простой способ – отправьте мне текущую геолокацию, нажав на кнопку ниже. Если ваш телеграм клиент не поддерживает отправку геолокации, воспользуйтесь другими способами.\n\nЕсли вы знаете в каком часовом поясе вы находитесь, вы можете выбрать его своими руками. Для этого отправьте мне команду /${params.SELECT_TIMEZONE_COMMAND}.\n\nЕсли вы не знаете, в каком часовом поясе находитесь, отправьте мне команду /${params.GET_TIMEZONE_FROM_TIME_COMMAND}.`;
+        return `Для того, чтобы отправлять новости в подходящее вам время, нужно понять, в каком часовом поясе вы находитесь.\n\nСамый простой способ – отправьте мне текущую геолокацию, нажав на кнопку ниже. Если ваш телеграм клиент не поддерживает отправку геолокации, воспользуйтесь другими способами.\n\nЕсли вы знаете в каком часовом поясе вы находитесь, вы можете выбрать его своими руками. Для этого отправьте мне команду /${params.SELECT_TIMEZONE_COMMAND}.\n\nЕсли вы не знаете, в каком часовом поясе находитесь, отправьте мне команду /${params.GET_TIMEZONE_FROM_TIME_COMMAND}.`;
     }
   },
 
-  selectTimeZone(locale = 'en') {
+  selectTimeZone(locale = 'en', params) {
     switch (locale) {
       default:
-        return `Выберите свой часовой пояс`;
+        return `Отправьте мне ваш часовой пояс в формате UTC ([Всемирное координированное время](https://ru.wikipedia.org/wiki/Всемирное_координированное_время)) с помощью команды /${params.SET_UTC_COMMAND}.\n\nНапример, если вы находитесь в Непале – ваш часовой пояс +05:45, следовательно нужно отправить команду \`/${params.SET_UTC_COMMAND} +05:45\``;
     }
   },
+
+  timezoneUpdated(locale = 'en', params) {
+    switch (locale) {
+      default:
+        return `Ваш часовой пояс изменен. Теперь можно изменить время получения новостей с помощью команды ${params.SET_TIME_COMMAND}.`;
+    }
+  },
+
+  noTimezone(locale = 'en', params) {
+    switch (locale) {
+      default:
+        return `Пока не установлен часовой пояс я не смогу корректно определить время отправки новостей. Установите часовой пояс с помощью команды /${params.SET_TIMEZONE_COMMAND}`;
+    }
+  },
+
+  sendMeYourTime(locale = 'en', params) {
+    switch (locale) {
+      default:
+        return `Я могу определить ваш часовой пояс по тому, сколько у вас сейчас времени.\n\nОтправьте мне свое текущее время в формате \`HH:mm\` с помощью команды /${params.SET_TIMEZONE_FROM_TIME_COMMAND}.\n\nНапример, если ваше текущее время – 13:45, отправьте мне команду \`/${params.SET_TIMEZONE_FROM_TIME_COMMAND} 13:45\``;
+    }
+  }
 };

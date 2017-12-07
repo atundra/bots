@@ -5,7 +5,7 @@ const {sequelize} = require('./db');
 const DEFAULT_HOUR = 7;
 const DEFAULT_MINUTE = 0;
 
-const User = sequelize.define('user', {
+const User = sequelize.define('User', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -20,7 +20,10 @@ const User = sequelize.define('user', {
   },
   lang: {
     type: Sequelize.STRING,
-  }
+  },
+  timezone: {
+    type: Sequelize.STRING,
+  },
 });
 
 module.exports = {
@@ -31,7 +34,7 @@ module.exports = {
     });
   },
 
-  async setTime(id, subscriptionHour, subscriptionMinute) {
+  async setTime(id, subscriptionHour = 7, subscriptionMinute = 0) {
     return User.update({
       subscriptionHour,
       subscriptionMinute,
@@ -47,4 +50,12 @@ module.exports = {
   async getById(id) {
     return User.findOne({where: {id}});
   },
+
+  async setTimezone(id, timezone) {
+    return User.update({
+      timezone,
+    }, {
+      where: {id},
+    });
+  }
 };

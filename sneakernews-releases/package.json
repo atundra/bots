@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "migrate": "node_modules/.bin/sequelize --config sequelize-cli-config.js db:migrate",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -32,6 +33,7 @@
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "sequelize": "^4.22.8",
+    "sequelize-cli": "^3.2.0",
     "telegraf": "^3.15.3"
   }
 }
