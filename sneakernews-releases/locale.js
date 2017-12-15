@@ -35,11 +35,11 @@ module.exports = {
   timeUpdated(locale = 'en', params) {
     switch (locale) {
       case 'en':
-        return 'You will receive the newsletter at ${params.RECEIVING_TIME}.';
+        return `You will receive the newsletter at ${params.RECEIVING_TIME}.`;
       case 'ru':
-        return 'Вы будете получать рассылку в ${params.RECEIVING_TIME}.';
+        return `Вы будете получать рассылку в ${params.RECEIVING_TIME}.`;
       default:
-        return 'You will receive the newsletter at ${params.RECEIVING_TIME}.';
+        return `You will receive the newsletter at ${params.RECEIVING_TIME}.`;
     }
   },
 
@@ -108,7 +108,7 @@ module.exports = {
   timezoneUpdated(locale = 'en', params) {
     switch (locale) {
       default:
-        return `Ваш часовой пояс изменен. Теперь можно изменить время получения новостей с помощью команды ${params.SET_TIME_COMMAND}.`;
+        return `Ваш часовой пояс изменен. Теперь можно изменить время получения новостей с помощью команды /${params.SET_TIME_COMMAND}.`;
     }
   },
 
