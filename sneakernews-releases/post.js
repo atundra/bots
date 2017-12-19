@@ -14,8 +14,7 @@ class Post {
 
 		const now = new Date();
 		return this.date.getDate() === now.getDate() &&
-        this.date.getMonth() === now.getMonth() &&
-        this.date.getYear() === now.getYear();
+        this.date.getMonth() === now.getMonth();
 	}
 
 	/** @param {Array<Post>} posts */

@@ -21,12 +21,22 @@ module.exports = async user => {
     disable_web_page_preview: true,
   });
 
-  for (let post of todaysReleases) {
+  if (todaysReleases.length === 1) {
+    const post = todaysReleases[0];
     await telegram.sendPhoto(user.id, post.imgUrl, {
       caption: post.name,
       disable_notification: true,
     });
+  } else {
+    telegram.sendMediaGroup(user.id, todaysReleases.map(post => ({
+      type: 'photo',
+      media: post.imgUrl,
+      caption: post.name,
+    })),{
+      disable_notification: true,
+    });
   }
+
   log(`Posts sended to user ${user.id}`);
   return todaysReleases;
 };

@@ -1,6 +1,7 @@
 'use strict';
 const DEFAULT_HOUR = 7;
 const DEFAULT_MINUTE = 0;
+const DEFAULT_SEND_WHEN = (DEFAULT_HOUR * 60 + DEFAULT_MINUTE) * 60;
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -22,7 +23,11 @@ module.exports = {
         type: Sequelize.STRING,
       },
       timezone: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
+      },
+      sendWhen: {
+        type: Sequelize.INTEGER,
+        defaultValue: DEFAULT_SEND_WHEN,
       },
       createdAt: {
         allowNull: false,

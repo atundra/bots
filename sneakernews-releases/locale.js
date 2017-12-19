@@ -1,12 +1,12 @@
 module.exports = {
-  welcome(locale = 'en') {
+  welcome(locale = 'en', params) {
     switch (locale) {
       case 'en':
-        return 'Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /settime.';
+        return `Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /${params.SET_TIME_COMMAND}.`;
       case 'ru':
-        return 'Привет! Я буду присылыать тебе подборку релизов кроссовок каждый день в 10 утра по московскому времени.\nЕсли хочешь получать рассылку в другое время, используй команду /settime.';
+        return `Привет! Я буду присылыать тебе подборку релизов кроссовок каждый день в 10 утра по московскому времени.\nЕсли хочешь получать рассылку в другое время, используй команду /${params.SET_TIME_COMMAND}.`;
       default:
-        return 'Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /settime.';
+        return `Welcome! Now I will send you the sneaker releases every day at 02 am New York time (10 am Moscow time).\nIf you want to change this use command /${params.SET_TIME_COMMAND}.`;
     }
   },
 
@@ -108,7 +108,7 @@ module.exports = {
   timezoneUpdated(locale = 'en', params) {
     switch (locale) {
       default:
-        return `Ваш часовой пояс изменен. Теперь можно изменить время получения новостей с помощью команды /${params.SET_TIME_COMMAND}.`;
+        return `Ваш часовой пояс изменен на ${params.TIMEZONE}. Теперь можно изменить время получения новостей с помощью команды /${params.SET_TIME_COMMAND}.`;
     }
   },
 
@@ -124,5 +124,19 @@ module.exports = {
       default:
         return `Я могу определить ваш часовой пояс по тому, сколько у вас сейчас времени.\n\nОтправьте мне свое текущее время в формате \`HH:mm\` с помощью команды /${params.SET_TIMEZONE_FROM_TIME_COMMAND}.\n\nНапример, если ваше текущее время – 13:45, отправьте мне команду \`/${params.SET_TIMEZONE_FROM_TIME_COMMAND} 13:45\``;
     }
-  }
+  },
+
+  genericError(locale = 'en', params) {
+    switch (locale) {
+      default:
+        return `Произошла ошибка. Попробуйте еще раз позже.`;
+    }
+  },
+
+  sendLocation(locale = 'en', params) {
+    switch (locale) {
+      default:
+        return `Отправить местоположение`;
+    }
+  },
 };
