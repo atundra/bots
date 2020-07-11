@@ -7,7 +7,6 @@ const sequelize = new Sequelize({
   dialect: 'postgresql',
 });
 
-
 module.exports = {
   sequelize,
 

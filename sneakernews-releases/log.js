@@ -1,1 +1,2 @@
-module.exports = (...messages) => console.log(new Date().toISOString(), ...messages);
+module.exports = (...messages) =>
+  console.log(new Date().toISOString(), ...messages);

@@ -11,9 +11,7 @@ const {
   getById: getUserById,
   setTimezone: setUserTimezone,
 } = require('./user');
-const {
-  getTimezones,
-} = require('./timezones');
+const { getTimezones } = require('./timezones');
 const {
   div,
   roundToNearest,
@@ -22,10 +20,9 @@ const {
   parseTimezoneToOffset,
 } = require('./utils');
 
+const removeKeyboardMarkup = Extra.markup((markup) => markup.removeKeyboard());
 
-const removeKeyboardMarkup = Extra.markup(markup => markup.removeKeyboard());
-
-const getTimeCommands = m => {
+const getTimeCommands = (m) => {
   return [
     [
       m.callbackButton('00:00', 'settime0000'),
@@ -80,52 +77,61 @@ const actionHandler = async (ctx, next) => {
   return next();
 };
 
-const startHandler = async ctx => {
-  const {
-    id,
-    is_bot,
-    first_name,
-    username,
-    language_code,
-  } = ctx.from;
+const startHandler = async (ctx) => {
+  const { id, is_bot, first_name, username, language_code } = ctx.from;
 
   const [user, created] = await registerUser(id, language_code);
   if (!created) {
-    return ctx.reply(locale.alreadyRegistered(language_code, {
-      SET_TIME_COMMAND: Command.SET_TIME,
-    }));
+    return ctx.reply(
+      locale.alreadyRegistered(language_code, {
+        SET_TIME_COMMAND: Command.SET_TIME,
+      })
+    );
   }
 
-  return ctx.reply(locale.welcome(language_code, {
-    SET_TIME_COMMAND: Command.SET_TIME,
-  }));
+  return ctx.reply(
+    locale.welcome(language_code, {
+      SET_TIME_COMMAND: Command.SET_TIME,
+    })
+  );
 };
 
-const setTimezoneHandler = ctx => {
+const setTimezoneHandler = (ctx) => {
   const message = locale.setTimeZone(ctx.from.language_code, {
     GET_TIMEZONE_FROM_TIME_COMMAND: Command.GET_TIMEZONE_FROM_TIME,
     SELECT_TIMEZONE_COMMAND: Command.SELECT_TIMEZONE,
   });
 
-  return ctx.reply(message, Extra.markup(markup => {
-    return markup.keyboard([
-      markup.locationRequestButton(locale.sendLocation(ctx.from.language_code)),
-    ]).resize().oneTime();
-  }));
+  return ctx.reply(
+    message,
+    Extra.markup((markup) => {
+      return markup
+        .keyboard([
+          markup.locationRequestButton(
+            locale.sendLocation(ctx.from.language_code)
+          ),
+        ])
+        .resize()
+        .oneTime();
+    })
+  );
 };
 
-const setTimeHandler = async ctx => {
+const setTimeHandler = async (ctx) => {
   const user = await getUserById(ctx.from.id);
   if (!user.timezone) {
     return setTimezoneHandler(ctx);
   }
 
-  return ctx.replyWithMarkdown(locale.setTime(ctx.from.language_code), Extra.markup(markup => {
-    return markup.inlineKeyboard(getTimeCommands(markup));
-  }));
+  return ctx.replyWithMarkdown(
+    locale.setTime(ctx.from.language_code),
+    Extra.markup((markup) => {
+      return markup.inlineKeyboard(getTimeCommands(markup));
+    })
+  );
 };
 
-const setTimeActionHandler = async ctx => {
+const setTimeActionHandler = async (ctx) => {
   const [, timestring] = ctx.match;
   try {
     await userSetTime(ctx.from.id, parseInt(timestring, 10));
@@ -141,14 +147,18 @@ const setTimeActionHandler = async ctx => {
   return ctx.reply(message);
 };
 
-const getTimeZoneFromTimeHandler = ctx => ctx.replyWithMarkdown(locale.sendMeYourTime(ctx.from.language_code, {
-  SET_TIMEZONE_FROM_TIME_COMMAND: Command.SET_TIMEZONE_FROM_TIME,
-}), removeKeyboardMarkup);
+const getTimeZoneFromTimeHandler = (ctx) =>
+  ctx.replyWithMarkdown(
+    locale.sendMeYourTime(ctx.from.language_code, {
+      SET_TIMEZONE_FROM_TIME_COMMAND: Command.SET_TIMEZONE_FROM_TIME,
+    }),
+    removeKeyboardMarkup
+  );
 
 const TBT_REGEXP = /\/tbt ([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])/;
-const setTimezoneFromTimeHandler = async ctx => {
+const setTimezoneFromTimeHandler = async (ctx) => {
   const text = ctx.message.text.trim();
-  
+
   if (!TBT_REGEXP.test(text)) {
     await ctx.reply(locale.wrongFormat(ctx.from.language_code));
     return getTimeZoneFromTimeHandler(ctx);
@@ -160,18 +170,24 @@ const setTimezoneFromTimeHandler = async ctx => {
   const timezone = getTimezoneFromUserTime(hour, minute);
   const timezoneOffset = parseTimezoneToOffset(timezone);
   await setUserTimezone(ctx.from.id, timezoneOffset);
-  return ctx.reply(locale.timezoneUpdated(ctx.from.language_code, {
-    SET_TIME_COMMAND: Command.SET_TIME,
-    TIMEZONE: timezone,
-  }));
+  return ctx.reply(
+    locale.timezoneUpdated(ctx.from.language_code, {
+      SET_TIME_COMMAND: Command.SET_TIME,
+      TIMEZONE: timezone,
+    })
+  );
 };
 
-const setUTCCommonHandler = ctx => ctx.replyWithMarkdown(locale.selectTimeZone(ctx.from.language_code, {
-  SET_UTC_COMMAND: Command.SET_UTC,
-}), removeKeyboardMarkup);
+const setUTCCommonHandler = (ctx) =>
+  ctx.replyWithMarkdown(
+    locale.selectTimeZone(ctx.from.language_code, {
+      SET_UTC_COMMAND: Command.SET_UTC,
+    }),
+    removeKeyboardMarkup
+  );
 
 const SET_UTC_REGEXP = /^\/setutc (Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])$/;
-const setUTCHandler = async ctx => {
+const setUTCHandler = async (ctx) => {
   const text = ctx.message.text.trim();
 
   if (!SET_UTC_REGEXP.test(text)) {
@@ -182,15 +198,19 @@ const setUTCHandler = async ctx => {
   const [, timezone] = SET_UTC_REGEXP.exec(text);
   const timezoneOffset = parseTimezoneToOffset(timezone);
   await setUserTimezone(ctx.from.id, timezoneOffset);
-  return ctx.reply(locale.timezoneUpdated(ctx.from.language_code, {
-    SET_TIME_COMMAND: Command.SET_TIME,
-    TIMEZONE: timezone,
-  }));
+  return ctx.reply(
+    locale.timezoneUpdated(ctx.from.language_code, {
+      SET_TIME_COMMAND: Command.SET_TIME,
+      TIMEZONE: timezone,
+    })
+  );
 };
 
-const locationHandler = async ctx => {
-  const {latitude, longitude} = ctx.message.location;
-  const url = `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${Math.floor(Date.now() / 1000)}&key=${process.env.GOOGLE_TIMEZONE_API_KEY}`;
+const locationHandler = async (ctx) => {
+  const { latitude, longitude } = ctx.message.location;
+  const url = `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${Math.floor(
+    Date.now() / 1000
+  )}&key=${process.env.GOOGLE_TIMEZONE_API_KEY}`;
   let data;
   try {
     data = JSON.parse(await request.get(url));
@@ -204,13 +224,16 @@ const locationHandler = async ctx => {
 
   const timezone = getTimezonefromOffset(data.rawOffset);
   await setUserTimezone(ctx.from.id, data.rawOffset);
-  return ctx.reply(locale.timezoneUpdated(ctx.from.language_code, {
-    SET_TIME_COMMAND: Command.SET_TIME,
-    TIMEZONE: timezone,
-  }), removeKeyboardMarkup);
+  return ctx.reply(
+    locale.timezoneUpdated(ctx.from.language_code, {
+      SET_TIME_COMMAND: Command.SET_TIME,
+      TIMEZONE: timezone,
+    }),
+    removeKeyboardMarkup
+  );
 };
 
-const getHandler = async ctx => {
+const getHandler = async (ctx) => {
   const user = await getUserById(ctx.from.id);
   if (!user) {
     return ctx.reply(locale.notRegistered(ctx.from.language_code));

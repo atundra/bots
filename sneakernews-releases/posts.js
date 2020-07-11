@@ -1,7 +1,6 @@
 const parse = require('./parse');
 const log = require('./log');
 
-
 const getPosts = () => {
   let posts = null;
 
@@ -13,9 +12,9 @@ const getPosts = () => {
         posts = null;
       }, 1000 * 60 * 5);
     }
-  
+
     return posts;
-  }
+  };
 };
 
 module.exports = getPosts();

@@ -1,11 +1,11 @@
 const log = require('./log');
 
+const div = (val, by) => (val - (val % by)) / by;
 
-const div = (val, by) => (val - val % by) / by;
+const roundToNearest = (number, nearest) =>
+  Math.round(number / nearest) * nearest;
 
-const roundToNearest = (number, nearest) => Math.round(number / nearest) * nearest;
-
-const getTimezonefromOffset = secondsOffset => {
+const getTimezonefromOffset = (secondsOffset) => {
   const sign = secondsOffset >= 0 ? '+' : '-';
   const roundedOffset = roundToNearest(Math.abs(secondsOffset), 30 * 60);
   const date = new Date(roundedOffset * 1000);
@@ -26,14 +26,14 @@ module.exports = {
     userDate.setUTCMinutes(minute);
     const delta = userDate - now;
     let minuteDelta = div(delta, 1000 * 60);
-    if (minuteDelta > (60 * 12)) {
+    if (minuteDelta > 60 * 12) {
       minuteDelta = -24 * 60 + minuteDelta;
     }
-  
-    if (minuteDelta <= (-60 * 12)) {
+
+    if (minuteDelta <= -60 * 12) {
       minuteDelta = minuteDelta + 24 * 60;
     }
-  
+
     return getTimezonefromOffset(minuteDelta * 60);
   },
 

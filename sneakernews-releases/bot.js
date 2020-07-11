@@ -16,7 +16,6 @@ const {
   startHandler,
 } = require('./handlers');
 
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.action(/.*/, actionHandler);
