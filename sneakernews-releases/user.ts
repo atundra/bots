@@ -1,11 +1,35 @@
-const Sequelize = require('sequelize');
-const { sequelize } = require('./db');
+import Sequelize from 'sequelize';
+import { sequelize } from './db';
 
 const DEFAULT_HOUR = 7;
 const DEFAULT_MINUTE = 0;
 const DEFAULT_SEND_WHEN = (DEFAULT_HOUR * 60 + DEFAULT_MINUTE) * 60;
 
-const User = sequelize.define('User', {
+type User = {
+  id: number;
+  subscriptionHour: number;
+  subscriptionMinute: number;
+  lang?: string | null;
+  timezone?: number | null;
+  sendWhen: number;
+};
+
+type UserAttributes = {
+  id: number;
+  subscriptionHour: number | null;
+  subscriptionMinute: number | null;
+  lang: string | null;
+  timezone: number | null;
+  sendWhen: number | null;
+};
+
+type UserCreationAttributes = Partial<UserAttributes> & { id: number };
+
+const User: Sequelize.Model<
+  User,
+  UserCreationAttributes,
+  UserAttributes
+> = sequelize.define('User', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -33,7 +57,7 @@ const User = sequelize.define('User', {
 const DAY_IN_SECONDS = 24 * 60 * 60;
 
 /** @return {number} seconds */
-const getSendTime = (hour, minute, timezone) => {
+const getSendTime = (hour: number, minute: number, timezone: number) => {
   const time = (hour * 60 + minute) * 60;
   const sendWhenRaw = time - timezone;
 
@@ -48,22 +72,23 @@ const getSendTime = (hour, minute, timezone) => {
   return sendWhenRaw;
 };
 
-module.exports = {
-  async register(id, lang = null) {
-    return User.findCreateFind({
+export = {
+  async register(id: number, lang = null) {
+    return User.findCreateFind<{}>({
       where: { id },
+      // @ts-ignore
       defaults: { lang },
     });
   },
 
-  async setTime(id, subscriptionHour = 7, subscriptionMinute = 0) {
+  async setTime(id: number, subscriptionHour = 7, subscriptionMinute = 0) {
     const user = await User.findOne({ where: { id } });
-    const update = {
+    const update: Partial<UserAttributes> = {
       subscriptionHour,
       subscriptionMinute,
     };
 
-    if (user.timezone) {
+    if (user && user.timezone) {
       update.sendWhen = getSendTime(
         subscriptionHour,
         subscriptionMinute,
@@ -76,21 +101,21 @@ module.exports = {
     });
   },
 
-  async get(condition) {
+  async get(condition: Sequelize.FindOptions<UserAttributes>) {
     return User.findAll(condition);
   },
 
-  async getById(id) {
+  async getById(id: number) {
     return User.findOne({ where: { id } });
   },
 
-  async setTimezone(id, timezone) {
+  async setTimezone(id: number, timezone: number) {
     const user = await User.findOne({ where: { id } });
     const update = {
       timezone,
     };
 
-    if (user.subscriptionHour && user.subscriptionMinute) {
+    if (user && user.subscriptionHour && user.subscriptionMinute) {
       user.sendWhen = getSendTime(
         user.subscriptionHour,
         user.subscriptionMinute,

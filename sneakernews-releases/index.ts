@@ -4,8 +4,8 @@ import runBot from './bot';
 import runCron from './cron';
 
 const main = async () => {
-  runBot();
-  await runCron();
+  // runBot();
+  runCron();
 };
 
 main()

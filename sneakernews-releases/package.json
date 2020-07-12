@@ -7,8 +7,7 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node_modules/.bin/sequelize --config sequelize-cli-config.js db:migrate",
     "start": "ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "p": "prettier --write ."
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -42,6 +41,8 @@
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
+    "@types/cron": "^1.7.2",
+    "@types/sequelize": "^4.28.9",
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
