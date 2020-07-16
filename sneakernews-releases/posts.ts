@@ -1,8 +1,10 @@
-const parse = require('./parse');
-const log = require('./log');
+// @ts-ignore
+import parse from './parse';
+import log from './log';
+import Post from './post';
 
 const getPosts = () => {
-  let posts = null;
+  let posts: Post[] | null = null;
 
   return async () => {
     if (!posts) {
@@ -17,4 +19,4 @@ const getPosts = () => {
   };
 };
 
-module.exports = getPosts();
+export default getPosts();
