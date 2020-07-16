@@ -4,6 +4,7 @@ import * as RR from 'fp-ts/lib/ReadonlyRecord';
 import * as RE from 'fp-ts/lib/ReaderEither';
 import * as O from 'fp-ts/lib/Option';
 import { pipe, flow, identity } from 'fp-ts/lib/function';
+import { sequenceS } from 'fp-ts/lib/Apply';
 config();
 
 const isString = (a: unknown): a is string => typeof a === 'string';
@@ -14,7 +15,7 @@ class EnvNotSpecifiedError extends Error {
   }
 }
 
-const getFromEnvStrict = (
+const fromEnvStrict = (
   key: string
 ): RE.ReaderEither<NodeJS.ProcessEnv, EnvNotSpecifiedError, string> =>
   flow(
@@ -23,13 +24,16 @@ const getFromEnvStrict = (
     E.fromOption(() => new EnvNotSpecifiedError(key))
   );
 
+const fromConst = <T>(val: T): RE.ReaderEither<unknown, never, T> => () =>
+  E.right(val);
+
 export const getConfig = pipe(
   {
-    BOT_TOKEN: getFromEnvStrict('BOT_TOKEN'),
-    DB_NAME: getFromEnvStrict('DB_NAME'),
-    GOOGLE_TIMEZONE_API_KEY: getFromEnvStrict('GOOGLE_TIMEZONE_API_KEY'),
+    BOT_TOKEN: fromEnvStrict('BOT_TOKEN'),
+    DB_NAME: fromEnvStrict('DB_NAME'),
+    GOOGLE_TIMEZONE_API_KEY: fromEnvStrict('GOOGLE_TIMEZONE_API_KEY'),
   },
-  RR.sequence(RE.readerEither)
+  sequenceS(RE.readerEither)
 );
 
 export const getConfigUnsafe = flow(
