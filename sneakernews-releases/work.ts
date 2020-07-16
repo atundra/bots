@@ -1,8 +1,6 @@
 // @ts-ignore
 import telegram from './telegram';
-// @ts-ignore
 import Post from './post';
-// @ts-ignore
 import getPosts from './posts';
 // @ts-ignore
 import locale from './locale';
@@ -11,7 +9,7 @@ import log from './log';
 const work = async (user: any) => {
   log(`Start sending posts to user ${user.id}`);
   const posts = await getPosts();
-  const todaysReleases = posts.filter((post: any) => post.isReleaseToday());
+  const todaysReleases = posts!.filter((post: any) => post.isReleaseToday());
   if (todaysReleases.length === 0) {
     return;
   }

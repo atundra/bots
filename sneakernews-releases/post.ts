@@ -1,5 +1,19 @@
+type PostData = {
+  date: Date | null;
+  imgUrl: string | null;
+  name: string | null;
+  price: string | null;
+  url: string | null;
+};
+
 class Post {
-  constructor(data) {
+  date: Date | null;
+  imgUrl: string | null;
+  name: string | null;
+  price: string | null;
+  url: string | null;
+
+  constructor(data: PostData) {
     this.date = data.date;
     this.imgUrl = data.imgUrl;
     this.name = data.name;
@@ -19,8 +33,7 @@ class Post {
     );
   }
 
-  /** @param {Array<Post>} posts */
-  static overall(posts) {
+  static overall(posts: Post[]) {
     if (posts.length === 0) {
       return null;
     }
@@ -37,4 +50,4 @@ class Post {
   }
 }
 
-module.exports = Post;
+export default Post;
