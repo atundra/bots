@@ -1,11 +1,13 @@
 import Sequelize from 'sequelize';
 import { sequelize } from './db';
+import * as E from 'fp-ts/lib/Either';
+import * as TE from 'fp-ts/lib/TaskEither';
 
 const DEFAULT_HOUR = 7;
 const DEFAULT_MINUTE = 0;
 const DEFAULT_SEND_WHEN = (DEFAULT_HOUR * 60 + DEFAULT_MINUTE) * 60;
 
-type User = {
+export type User = {
   id: number;
   subscriptionHour: number;
   subscriptionMinute: number;
@@ -72,59 +74,62 @@ const getSendTime = (hour: number, minute: number, timezone: number) => {
   return sendWhenRaw;
 };
 
-export = {
-  async register(id: number, lang = null) {
-    return User.findCreateFind<{}>({
-      where: { id },
-      // @ts-ignore
-      defaults: { lang },
-    });
-  },
+export const register = (id: number, lang = null) => {
+  return User.findCreateFind<{}>({
+    where: { id },
+    defaults: { lang } as UserCreationAttributes,
+  });
+};
 
-  async setTime(id: number, subscriptionHour = 7, subscriptionMinute = 0) {
-    const user = await User.findOne({ where: { id } });
-    const update: Partial<UserAttributes> = {
+export const setTime = async (
+  id: number,
+  subscriptionHour = 7,
+  subscriptionMinute = 0
+) => {
+  const user = await User.findOne({ where: { id } });
+  const update: Partial<UserAttributes> = {
+    subscriptionHour,
+    subscriptionMinute,
+  };
+
+  if (user && user.timezone) {
+    update.sendWhen = getSendTime(
       subscriptionHour,
       subscriptionMinute,
-    };
+      user.timezone
+    );
+  }
 
-    if (user && user.timezone) {
-      update.sendWhen = getSendTime(
-        subscriptionHour,
-        subscriptionMinute,
-        user.timezone
-      );
-    }
+  return User.update(update, {
+    where: { id },
+  });
+};
 
-    return User.update(update, {
-      where: { id },
-    });
-  },
+export const get = (
+  condition: Sequelize.FindOptions<UserAttributes>
+): TE.TaskEither<Error, User[]> => {
+  return TE.tryCatch(() => User.findAll(condition), E.toError);
+};
 
-  async get(condition: Sequelize.FindOptions<UserAttributes>) {
-    return User.findAll(condition);
-  },
+export const getById = (id: number) => {
+  return User.findOne({ where: { id } });
+};
 
-  async getById(id: number) {
-    return User.findOne({ where: { id } });
-  },
+export const setTimezone = async (id: number, timezone: number) => {
+  const user = await User.findOne({ where: { id } });
+  const update = {
+    timezone,
+  };
 
-  async setTimezone(id: number, timezone: number) {
-    const user = await User.findOne({ where: { id } });
-    const update = {
-      timezone,
-    };
+  if (user && user.subscriptionHour && user.subscriptionMinute) {
+    user.sendWhen = getSendTime(
+      user.subscriptionHour,
+      user.subscriptionMinute,
+      timezone
+    );
+  }
 
-    if (user && user.subscriptionHour && user.subscriptionMinute) {
-      user.sendWhen = getSendTime(
-        user.subscriptionHour,
-        user.subscriptionMinute,
-        timezone
-      );
-    }
-
-    return User.update(update, {
-      where: { id },
-    });
-  },
+  return User.update(update, {
+    where: { id },
+  });
 };

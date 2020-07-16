@@ -1,15 +1,17 @@
-const { setTimeout } = require('timers');
-const request = require('request-promise-native');
-const telegram = require('./telegram');
-const Post = require('./post');
-const getPosts = require('./posts');
-const locale = require('./locale');
-const log = require('./log');
+// @ts-ignore
+import telegram from './telegram';
+// @ts-ignore
+import Post from './post';
+// @ts-ignore
+import getPosts from './posts';
+// @ts-ignore
+import locale from './locale';
+import log from './log';
 
-module.exports = async (user) => {
+const work = async (user: any) => {
   log(`Start sending posts to user ${user.id}`);
   const posts = await getPosts();
-  const todaysReleases = posts.filter((post) => post.isReleaseToday());
+  const todaysReleases = posts.filter((post: any) => post.isReleaseToday());
   if (todaysReleases.length === 0) {
     return;
   }
@@ -31,7 +33,7 @@ module.exports = async (user) => {
   } else {
     telegram.sendMediaGroup(
       user.id,
-      todaysReleases.map((post) => ({
+      todaysReleases.map((post: any) => ({
         type: 'photo',
         media: post.imgUrl,
         caption: post.name,
@@ -45,3 +47,5 @@ module.exports = async (user) => {
   log(`Posts sended to user ${user.id}`);
   return todaysReleases;
 };
+
+export default work;
