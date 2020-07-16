@@ -24,14 +24,18 @@ const fromEnvStrict = (
     E.fromOption(() => new EnvNotSpecifiedError(key))
   );
 
-const fromConst = <T>(val: T): RE.ReaderEither<unknown, never, T> => () =>
-  E.right(val);
+type Literal = string | number | boolean | null;
+
+const fromLiteral = <T extends readonly [Literal]>(
+  ...val: T
+): RE.ReaderEither<unknown, never, T[0]> => () => E.right(val[0]);
 
 export const getConfig = pipe(
   {
     BOT_TOKEN: fromEnvStrict('BOT_TOKEN'),
     DB_NAME: fromEnvStrict('DB_NAME'),
     GOOGLE_TIMEZONE_API_KEY: fromEnvStrict('GOOGLE_TIMEZONE_API_KEY'),
+    A: fromLiteral(123),
   },
   sequenceS(RE.readerEither)
 );
