@@ -1,17 +1,19 @@
 import * as C from 'fp-ts/lib/Console';
-import { Middleware } from 'telegraf';
+import { Middleware, Extra, Markup } from 'telegraf';
 import { TelegrafContext } from 'telegraf/typings/context';
 import { pipe, constVoid, identity, flow } from 'fp-ts/lib/function';
-import * as D from 'fp-ts/lib/Date';
-import * as IO from 'fp-ts/lib/IO';
-import * as T from 'fp-ts/lib/Task';
 import formatISO from 'date-fns/fp/formatISO';
 import { sequenceT } from 'fp-ts/lib/Apply';
+import * as B from 'fp-ts/lib/boolean';
+import * as D from 'fp-ts/lib/Date';
+import * as E from 'fp-ts/lib/Either';
+import * as IO from 'fp-ts/lib/IO';
+import * as O from 'fp-ts/lib/Option';
+import * as R from 'fp-ts/lib/Reader';
 import * as RT from 'fp-ts/lib/ReaderTask';
 import * as RTE from 'fp-ts/lib/ReaderTaskEither';
+import * as T from 'fp-ts/lib/Task';
 import * as TE from 'fp-ts/lib/TaskEither';
-import * as O from 'fp-ts/lib/Option';
-import * as E from 'fp-ts/lib/Either';
 import { locale } from './_locale';
 import { Command } from './_command';
 import { Message } from 'telegraf/typings/telegram-types';
@@ -64,31 +66,59 @@ const replyString = (
 
 export const startHandler = getMiddleware(
   pipe(
-    RT.ask<MiddlewareContext>(),
-    RT.map(({ ctx: { from } }) => from),
+    RT.asks(({ ctx: { from } }: MiddlewareContext) => from),
     RTE.rightReaderTask,
     // locale is unknown at this moment so we'll use defaule one
     RTE.chainEitherK(E.fromNullable(locale.genericError())),
-    RTE.chainTaskEitherK(({ id, language_code }) =>
+    RTE.chainTaskEitherK((tgUser) =>
       pipe(
-        registerUser(id, language_code),
+        registerUser(tgUser.id, tgUser.language_code),
+        TE.map(([dbUser, created]) => ({ dbUser, created, tgUser })),
         TE.mapLeft<unknown, string>((err) =>
-          locale.genericError(language_code)
-        ),
-        TE.filterOrElse<string, [unknown, boolean]>(
-          ([_, created]) => created,
+          locale.genericError(tgUser.language_code)
+        )
+      )
+    ),
+    RTE.map(({ created, tgUser: { language_code } }) =>
+      pipe(
+        created,
+        B.fold(
+          () =>
+            locale.welcome(language_code, {
+              SET_TIME_COMMAND: Command.SET_TIME,
+            }),
           () =>
             locale.alreadyRegistered(language_code, {
               SET_TIME_COMMAND: Command.SET_TIME,
             })
-        ),
-        TE.map(() =>
-          locale.welcome(language_code, {
-            SET_TIME_COMMAND: Command.SET_TIME,
-          })
         )
       )
     ),
     RTE.fold(replyString, replyString)
+  )
+);
+
+export const setTimezoneHandler = getMiddleware(
+  pipe(
+    RT.asks(({ ctx: { from } }: MiddlewareContext) => from),
+    RTE.rightReaderTask,
+    // locale is unknown at this moment so we'll use defaule one
+    RTE.chainEitherK(E.fromNullable(locale.genericError())),
+    RTE.fold(replyString, ({ language_code }) => ({ ctx: { reply } }) => () =>
+      reply(
+        locale.setTimeZone(language_code, {
+          GET_TIMEZONE_FROM_TIME_COMMAND: Command.GET_TIMEZONE_FROM_TIME,
+          SELECT_TIMEZONE_COMMAND: Command.SELECT_TIMEZONE,
+        }),
+        Extra.markup((markup: Markup) =>
+          markup
+            .keyboard([
+              markup.locationRequestButton(locale.sendLocation(language_code)),
+            ])
+            .resize()
+            .oneTime()
+        )
+      )
+    )
   )
 );
