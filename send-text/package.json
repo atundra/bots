@@ -1,0 +1,18 @@
+{
+  "name": "send-text",
+  "version": "1.0.0",
+  "description": "This one isn't actually a bot. Just a dummy function that sends a message to chat. Used for k8s cronjobs testing.",
+  "main": "main.ts",
+  "scripts": {
+    "start": "ts-node main.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "fp-ts": "^2.8.6",
+    "telegraf": "^3.38.0",
+    "ts-node": "^9.0.0"
+  }
+}
