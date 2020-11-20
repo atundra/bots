@@ -2,7 +2,7 @@ name: Publish send-text bot Docker image
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "send-text/**"
 jobs:
