@@ -30,25 +30,28 @@ const echoHandler = getMiddleware(
   )
 );
 
-pipe(
+const app = pipe(
   getConfig(process.env),
   TE.fromEither,
-  TE.chain(config => {
-    if (config.DEV) {
-      return pipe(
-        startTunnel(Number(config.PORT)),
-        TE.map(tunnel => ({
-          ...config,
-          HOSTNAME: tunnel.url
-        })),
-        TE.chainFirst(config =>
-          TE.fromIO<unknown, void>(Console.log(`Localtunnel url is ${config.HOSTNAME}`))
-        )
-      );
-    }
-
-    return TE.of(config);
-  }),
+  TE.chain(config =>
+    pipe(
+      O.fromNullable(config.DEV),
+      O.fold(
+        () => TE.of(config),
+        () =>
+          pipe(
+            startTunnel(Number(config.PORT)),
+            TE.map(tunnel => ({
+              ...config,
+              HOSTNAME: tunnel.url
+            })),
+            TE.chainFirst(config =>
+              TE.fromIO<unknown, void>(Console.log(`Localtunnel url is ${config.HOSTNAME}`))
+            )
+          )
+      )
+    )
+  ),
   TE.chain(config => {
     const telegraf = new Telegraf(config.BOT_TOKEN);
 
@@ -62,8 +65,7 @@ pipe(
   TE.chain(({ telegraf, config }) =>
     setWebhook(telegraf.telegram, `${config.HOSTNAME}/${config.BOT_TOKEN}`)
   ),
-  TE.fold(
-    e => T.fromIO(Console.error(e)),
-    () => T.of(undefined)
-  )
-)();
+  TE.fold(T.fromIOK(Console.error), () => T.of(undefined))
+);
+
+app();
