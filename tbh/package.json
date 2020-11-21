@@ -4,8 +4,7 @@
   "description": "",
   "scripts": {
     "start": "tsc && node ./dist/index.js",
-    "verify": "eslint",
-    "dev": "ts-node ./src/index.ts",
+    "dev": "DEV=1 ts-node ./src/index.ts",
     "precommit": "lint-staged"
   },
   "repository": {
@@ -21,13 +20,11 @@
   "dependencies": {
     "express": "^4.17.1",
     "fp-ts": "^2.7.0",
-    "fp-ts-routing": "^0.5.4",
-    "hyper-ts": "^0.6.0",
-    "io-ts": "^2.2.12",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.9",
+    "@types/localtunnel": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.13.0",
