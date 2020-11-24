@@ -8,15 +8,15 @@ import {
   MongoClient,
   MongoError,
   OptionalId,
-} from "mongodb";
-import * as TE from "fp-ts/TaskEither";
-import * as RA from "fp-ts/lib/ReadonlyArray";
-import * as RNEA from "fp-ts/lib/ReadonlyNonEmptyArray";
-import { Branded } from "io-ts";
-import { pipe } from "fp-ts/lib/pipeable";
+} from 'mongodb';
+import * as TE from 'fp-ts/TaskEither';
+import * as RA from 'fp-ts/lib/ReadonlyArray';
+import * as RNEA from 'fp-ts/lib/ReadonlyNonEmptyArray';
+import { Branded } from 'io-ts';
+import { pipe } from 'fp-ts/lib/pipeable';
 
-type NonConnectedMongoClient = Branded<MongoClient, "nonconnected">;
-type ConnectedMongoClient = Branded<MongoClient, "connected">;
+type NonConnectedMongoClient = Branded<MongoClient, 'nonconnected'>;
+type ConnectedMongoClient = Branded<MongoClient, 'connected'>;
 
 export const client = (uri: string) =>
   new MongoClient(uri, {

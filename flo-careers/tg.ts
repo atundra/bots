@@ -2,7 +2,6 @@ import { Telegraf, Telegram } from 'telegraf';
 import { TelegrafOptions } from 'telegraf/typings/telegraf';
 import { TelegramOptions } from 'telegraf/typings/telegram';
 import * as TE from 'fp-ts/TaskEither';
-import * as C from 'fp-ts/Console';
 import { TelegramError } from 'telegraf/core/network/error';
 import type {
   ExtraEditMessage,
