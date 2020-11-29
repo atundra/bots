@@ -29,7 +29,7 @@ const app = pipe(
       })
     );
   }),
-  RTE.chain(({ telegraf, config }) =>
+  RTE.chainW(({ telegraf, config }) =>
     RTE.fromTaskEither(setWebhook(telegraf.telegram, `${config.HOSTNAME}/${config.BOT_TOKEN}`))
   ),
   RTE.fold(RT.fromIOK(Console.error), () => RT.of(undefined))

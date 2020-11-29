@@ -19,7 +19,7 @@
   "homepage": "https://github.com/atundra/bots#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "fp-ts": "^2.7.0",
+    "fp-ts": "^2.9.0",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {
