@@ -1,9 +1,13 @@
 import * as E from 'fp-ts/lib/Either';
 import * as RR from 'fp-ts/lib/ReadonlyRecord';
 import * as RE from 'fp-ts/lib/ReaderEither';
+import * as RTE from 'fp-ts/lib/ReaderTaskEither';
 import * as O from 'fp-ts/lib/Option';
 import { pipe, flow } from 'fp-ts/lib/function';
 import { sequenceS } from 'fp-ts/lib/Apply';
+import * as Console from 'fp-ts/lib/Console';
+
+import { startTunnel, TunnelError } from '../utils/dev';
 
 const isString = (a: unknown): a is string => typeof a === 'string';
 
@@ -35,4 +39,31 @@ export const getConfig = pipe(
     DEV: fromEnvOptional('DEV')
   },
   sequenceS(RE.readerEither)
+);
+
+type Config = typeof getConfig extends RE.ReaderEither<any, any, infer A> ? A : never;
+
+export const getPopulatedConfig = pipe(
+  getConfig,
+  RTE.fromReaderEither,
+  RTE.chainW(config =>
+    pipe(
+      O.fromNullable(config.DEV),
+      O.fold(
+        () => RTE.of<NodeJS.ProcessEnv, TunnelError, Config>(config),
+        () =>
+          pipe(
+            startTunnel(Number(config.PORT)),
+            RTE.fromTaskEither,
+            RTE.map(tunnel => ({
+              ...config,
+              HOSTNAME: tunnel.url
+            })),
+            RTE.chainFirst(config =>
+              RTE.fromIO(Console.log(`Localtunnel url is ${config.HOSTNAME}`))
+            )
+          )
+      )
+    )
+  )
 );

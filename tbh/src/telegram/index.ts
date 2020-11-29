@@ -1,12 +1,26 @@
-import Telegraf, { Telegram } from 'telegraf';
-import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+import Telegraf, { Telegram, Middleware } from 'telegraf';
+import { ExtraReplyMessage, User } from 'telegraf/typings/telegram-types';
 import * as TE from 'fp-ts/lib/TaskEither';
 import * as IO from 'fp-ts/lib/IO';
-import { identity } from 'fp-ts/lib/function';
+import * as RT from 'fp-ts/lib/ReaderTask';
 import { TelegrafContext } from 'telegraf/typings/context';
 
-export const setWebhook = (telegram: Telegram, url: string): TE.TaskEither<unknown, boolean> =>
-  TE.tryCatch(() => telegram.setWebhook(url), identity);
+export class TelegramError extends Error {}
+
+export const setWebhook = (
+  telegram: Telegram,
+  url: string
+): TE.TaskEither<TelegramError, boolean> =>
+  TE.tryCatch(
+    () => telegram.setWebhook(url),
+    e => new TelegramError(String(e))
+  );
+
+export const getMe = (telegram: Telegram): TE.TaskEither<TelegramError, User> =>
+  TE.tryCatch(
+    () => telegram.getMe(),
+    e => new TelegramError(String(e))
+  );
 
 export const startWebhook = (
   telegraf: Telegraf<TelegrafContext>,
@@ -16,5 +30,9 @@ export const startWebhook = (
 
 export const reply = TE.tryCatchK(
   (ctx: TelegrafContext, text: string, extra?: ExtraReplyMessage) => ctx.reply(text, extra),
-  identity
+  e => new TelegramError(String(e))
 );
+
+export const getMiddleware = (
+  a: RT.ReaderTask<TelegrafContext, unknown>
+): Middleware<TelegrafContext> => ctx => RT.run(a, ctx);
