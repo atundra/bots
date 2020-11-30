@@ -15,51 +15,68 @@ import * as RNEA from 'fp-ts/lib/ReadonlyNonEmptyArray';
 import { Branded } from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 
-type NonConnectedMongoClient = Branded<MongoClient, 'nonconnected'>;
+declare const clientStateConnected: unique symbol;
+type ClientStateConnected = typeof clientStateConnected;
+declare const clientStateDisconnected: unique symbol;
+type ClientStateDisconnected = typeof clientStateDisconnected;
+
+type ClientState = ClientStateConnected | ClientStateDisconnected;
+
+declare const clientStateBrand: unique symbol;
+declare const clientDataSchemaBrand: unique symbol;
+
+/* eslint-disable @typescript-eslint/ban-types */
+type UnknownDataScheme = {};
+
+type Client<D extends UnknownDataScheme, S extends ClientState> = MongoClient & {
+  [clientStateBrand]: S;
+  [clientDataSchemaBrand]: D;
+};
+
+export type _ConnectedMongoClient<D extends UnknownDataScheme> = Client<D, ClientStateConnected>;
+type _DisconnectedMongoClient<D extends UnknownDataScheme> = Client<D, ClientStateDisconnected>;
+
 export type ConnectedMongoClient = Branded<MongoClient, 'connected'>;
 
 declare const dbNameBrand: unique symbol;
 declare const dbCollectionsBrand: unique symbol;
 
-type Db<Name, Collections> = MongoDb & {
-  [dbNameBrand]: Name;
+type Db<Collections> = MongoDb & {
   [dbCollectionsBrand]: Collections;
 };
 
-export const client = (uri: string) =>
+export const client = <D extends UnknownDataScheme>(uri: string) =>
   new MongoClient(uri, {
     useNewUrlParser: true,
     connectTimeoutMS: 1000 * 10,
     useUnifiedTopology: true
-  }) as NonConnectedMongoClient;
+  }) as _DisconnectedMongoClient<D>;
 
-export const connect = (
-  client: NonConnectedMongoClient
-): TE.TaskEither<MongoError, ConnectedMongoClient> =>
+export const connect = <D extends UnknownDataScheme>(
+  client: _DisconnectedMongoClient<D>
+): TE.TaskEither<MongoError, _ConnectedMongoClient<D>> =>
   TE.tryCatch(
-    () => client.connect() as Promise<ConnectedMongoClient>,
+    () => client.connect() as Promise<_ConnectedMongoClient<D>>,
     err => err as MongoError
   );
 
-export const db = <N extends string, Cs>(name: N) => (client: ConnectedMongoClient) =>
-  client.db(name) as Db<N, Cs>;
+export const db = <D extends UnknownDataScheme, N extends keyof D & string>(name: N) => (
+  client: _ConnectedMongoClient<D>
+) => client.db(name) as Db<D[N]>;
 
-type CollectionSchema<Cs, N extends keyof Cs> = Cs[N];
+export const collection = <Cs extends {}, N extends keyof Cs & string>(name: N) => (db: Db<Cs>) =>
+  db.collection<Cs[N]>(name);
 
-export const collection = <Cs, CollectionName extends keyof Cs & string>(name: CollectionName) => <
-  DbName
->(
-  db: Db<DbName, Cs>
-) => db.collection<CollectionSchema<Cs, CollectionName>>(name);
-
-export const close = (client: ConnectedMongoClient): TE.TaskEither<MongoError, void> =>
+export const close = <D extends UnknownDataScheme>(
+  client: _ConnectedMongoClient<D>
+): TE.TaskEither<MongoError, void> =>
   TE.tryCatch(
     () => client.close(),
     err => err as MongoError
   );
 
 export const useMongo = (uri: string) => <A>(
-  use: (a: ConnectedMongoClient) => TE.TaskEither<Error, A>
+  use: <D extends UnknownDataScheme>(a: _ConnectedMongoClient<D>) => TE.TaskEither<Error, A>
 ): TE.TaskEither<Error, A> => TE.bracket(pipe(uri, client, connect), use, client => close(client));
 
 export const find = <A>(q: FilterQuery<A>, o?: FindOneOptions<A extends A ? A : A>) => (
@@ -84,6 +101,3 @@ export const deleteMany = <A>(q: FilterQuery<A>, o?: CommonOptions) => (c: Colle
     () => c.deleteMany(q, o),
     err => err as MongoError
   );
-
-// declare const mc: ConnectedMongoClient;
-// pipe(mc, db<'asdf', { aaa: { s: string } }>('asdf'), collection('aaa'), find({}));

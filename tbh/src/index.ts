@@ -11,6 +11,7 @@ import { getConfig } from './utils/config';
 import { startTunnel } from './utils/dev';
 import { setWebhook, startWebhook, reply } from './telegram';
 import { TelegrafContext } from 'telegraf/typings/context';
+import * as m from './mongo';
 
 const getMiddleware = (
   a: RT.ReaderTask<TelegrafContext, unknown>
@@ -69,3 +70,46 @@ const app = pipe(
 );
 
 app();
+
+type MarketplaceMerchant = {
+  uid: string;
+  name: string;
+  products: number;
+};
+
+type MarketPlaceClient = {
+  uid: string;
+  email: string;
+  age: number;
+};
+
+type MarketplaceDb = {
+  merchant: MarketplaceMerchant;
+  client: MarketPlaceClient;
+};
+
+type IosEvent = {
+  osVersion: string;
+  dongLength: bigint;
+};
+
+type AndroidEvent = {
+  income: never;
+};
+
+type WebEvent = {
+  react?: 'react';
+};
+
+type EventsDb = {
+  iosEvents: IosEvent;
+  androidEvents: AndroidEvent;
+  webEvents: WebEvent;
+};
+
+type ExampleDataSchema = {
+  marketplace: MarketplaceDb;
+  events: EventsDb;
+};
+declare const mc: m._ConnectedMongoClient<ExampleDataSchema>;
+// pipe(mc, m.db('marketplace'), m.collection('merchant'), m.find({}));
