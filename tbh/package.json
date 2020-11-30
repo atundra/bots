@@ -18,8 +18,11 @@
   },
   "homepage": "https://github.com/atundra/bots#readme",
   "dependencies": {
+    "@types/mongodb": "^3.5.34",
     "express": "^4.17.1",
     "fp-ts": "^2.7.0",
+    "io-ts": "^2.2.13",
+    "mongodb": "^3.6.3",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {
