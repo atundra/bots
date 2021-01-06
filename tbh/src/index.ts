@@ -112,4 +112,4 @@ type ExampleDataSchema = {
   events: EventsDb;
 };
 declare const mc: m._ConnectedMongoClient<ExampleDataSchema>;
-// pipe(mc, m.db('marketplace'), m.collection('merchant'), m.find({}));
+pipe(mc, m.db('marketplace'), m.collection('merchant'), a => a, m.find({ name: 1 }));

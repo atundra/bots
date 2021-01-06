@@ -79,9 +79,33 @@ export const useMongo = (uri: string) => <A>(
   use: <D extends UnknownDataScheme>(a: _ConnectedMongoClient<D>) => TE.TaskEither<Error, A>
 ): TE.TaskEither<Error, A> => TE.bracket(pipe(uri, client, connect), use, client => close(client));
 
-export const find = <A>(q: FilterQuery<A>, o?: FindOneOptions<A extends A ? A : A>) => (
-  c: Collection<A>
-): TE.TaskEither<MongoError, A[]> =>
+interface Find {
+  <A>(q: A): <C>(
+    c: Collection<A extends FilterQuery<C> ? C : never>
+  ) => TE.TaskEither<MongoError, C[]>;
+  <A, B>(q: A, o: B): <C>(
+    c: Collection<
+      A extends FilterQuery<C>
+        ? B extends FindOneOptions<C extends C ? C : never>
+          ? C
+          : B extends void
+          ? C
+          : never
+        : never
+    >
+  ) => TE.TaskEither<MongoError, C[]>;
+}
+
+const f: Find = <AA, A extends FilterQuery<AA>>(q: A) => <C>(c: Collection<C>) =>
+  TE.tryCatch(
+    () => c.find(q).toArray(),
+    err => err as MongoError
+  );
+declare const d: Collection<{ a: 1 }>;
+
+const x = pipe(d, f({}));
+
+export const find = <A, B>(q: A, o?: B) => <C>(c: Collection<>): TE.TaskEither<MongoError, C[]> =>
   TE.tryCatch(
     () => c.find(q, o).toArray(),
     err => err as MongoError

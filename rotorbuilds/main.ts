@@ -18,6 +18,7 @@ import { Collection, FilterQuery } from 'mongodb';
 import * as Eq from 'fp-ts/lib/Eq';
 import { sendPhoto, telegram, ChatIdT, sendMessage } from './tg';
 import { Extra } from 'telegraf';
+import { escapeHtml } from './escape';
 
 const jsdom = (o: ConstructorOptions) => (s: string) => new JSDOM(s, o);
 
@@ -85,7 +86,9 @@ const sendRbPost = (tgToken: string) => (chatId: ChatIdT) => (post: RBPost) =>
       // I have no idea what's going on with Extra here
       // @ts-ignore
       Extra.caption(
-        `<b>${post.name}</b>\n${post.author}\n\n<a href="${post.link}">${post.link}</a>`
+        `<b>${escapeHtml(post.name)}</b>\n${escapeHtml(post.author)}\n\n<a href="${escapeHtml(
+          post.link
+        )}">${escapeHtml(post.link)}</a>`
       ).HTML(true)
     )
   );
