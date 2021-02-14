@@ -1,10 +1,14 @@
-import Telegraf from 'telegraf';
+import Telegraf, { Composer, Middleware } from 'telegraf';
 import { getConfigUnsafe } from './config';
 import * as IO from 'fp-ts/lib/IO';
 import { TelegrafContext } from 'telegraf/typings/context';
 import { UpdateType } from 'telegraf/typings/telegram-types';
 import { TelegrafOptions } from 'telegraf/typings/telegraf';
 import { pipe } from 'fp-ts/lib/function';
+
+const ms: ReadonlyArray<Middleware<TelegrafContext>> = [
+  Composer.action(/.*/, actionHandler),
+];
 
 const create = (token: string, options?: TelegrafOptions) =>
   pipe(new Telegraf(token, options), (bot) => {

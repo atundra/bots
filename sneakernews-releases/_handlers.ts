@@ -1,5 +1,5 @@
 import * as C from 'fp-ts/lib/Console';
-import { Middleware, Extra, Markup } from 'telegraf';
+import { Middleware, Extra, Markup, Composer } from 'telegraf';
 import { TelegrafContext } from 'telegraf/typings/context';
 import { pipe, constVoid, identity, flow } from 'fp-ts/lib/function';
 import formatISO from 'date-fns/fp/formatISO';
