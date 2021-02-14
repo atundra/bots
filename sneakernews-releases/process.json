@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "srb",
+      "script": "index.js",
+      "watch": false
+    }
+  ]
+}
