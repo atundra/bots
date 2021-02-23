@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - "aestheticize/**"
+      - "packages/aestheticize/**"
 jobs:
   push_to_registry:
     name: Push Docker image to atndr.net registry
@@ -21,4 +21,4 @@ jobs:
           password: ${{ secrets.ATNDR_DOCKER_PASSWORD }}
           tag_with_ref: true
           tag_with_sha: true
-          path: aestheticize
+          path: packages/aestheticize
