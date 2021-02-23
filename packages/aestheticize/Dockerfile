@@ -5,5 +5,6 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY . .
+COPY ../common ./node_modules/@atundra/common
 
 CMD [ "npm", "start" ]

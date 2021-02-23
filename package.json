@@ -1,0 +1,6 @@
+{
+  "name": "@atundra/bots",
+  "scripts": {
+    "bootstrap": "npx lerna bootstrap --hoist={typescript,fp-ts,io-ts,ts-node,mongodb,@types/mongodb} --strict"
+  }
+}
