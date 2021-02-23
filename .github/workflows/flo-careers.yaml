@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - "packages/flo-careers/**"
+      - "packages/common/**"
 jobs:
   push_to_registry:
     name: Push Docker image to atndr.net registry

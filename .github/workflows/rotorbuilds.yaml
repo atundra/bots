@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - 'packages/rotorbuilds/**'
+      - "packages/rotorbuilds/**"
+      - "packages/common/**"
 jobs:
   push_to_registry:
     name: Push Docker image to atndr.net registry
