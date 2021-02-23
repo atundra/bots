@@ -26,4 +26,6 @@ jobs:
           password: ${{ secrets.ATNDR_DOCKER_PASSWORD }}
           tag_with_ref: true
           tag_with_sha: true
-          path: packages/flo-careers
+          path: packages
+          dockerfile: ./packages/flo-careers/Dockerfile
+

@@ -26,4 +26,5 @@ jobs:
           password: ${{ secrets.ATNDR_DOCKER_PASSWORD }}
           tag_with_ref: true
           tag_with_sha: true
-          path: packages/rotorbuilds
+          path: packages
+          dockerfile: ./packages/rotorbuilds/Dockerfile
