@@ -1,5 +1,9 @@
 name: Publish send-text bot Docker image
 on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Test scenario tags' 
   push:
     branches:
       - main
