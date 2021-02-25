@@ -13,11 +13,8 @@ interface Bounded023C extends t.Type<Bounded023, number, unknown> {}
  */
 const Bounded023: Bounded023C = t.brand(
   t.number,
-  (n): n is Bounded023 => n >= 0 && n <= 24,
+  (n): n is Bounded023 => n >= 0 && n <= 23,
   'Bounded023'
 );
 
 export const Hour = t.intersection([t.Int, Bounded023]);
-
-const h = Hour.decode(1.2);
-console.log(h);
