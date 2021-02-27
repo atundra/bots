@@ -1,13 +1,12 @@
 import {
-    Collection,
-    CollectionInsertManyOptions,
-    CommonOptions,
-    Db as MongoDb,
-    FilterQuery,
-    FindOneOptions,
-    MongoClient,
-    MongoError,
-    OptionalId
+  Collection,
+  CollectionInsertManyOptions,
+  CommonOptions,
+  Db as MongoDb,
+  FilterQuery,
+  MongoClient,
+  MongoError,
+  OptionalId,
 } from 'mongodb';
 import * as TE from 'fp-ts/TaskEither';
 import * as RA from 'fp-ts/lib/ReadonlyArray';
@@ -26,11 +25,11 @@ declare const clientStateBrand: unique symbol;
 declare const clientDataSchemaBrand: unique symbol;
 
 /* eslint-disable @typescript-eslint/ban-types */
-type UnknownDataScheme = {};
+type UnknownDataScheme = any;
 
 type Client<D extends UnknownDataScheme, S extends ClientState> = MongoClient & {
-    [clientStateBrand]: S;
-    [clientDataSchemaBrand]: D;
+  [clientStateBrand]: S;
+  [clientDataSchemaBrand]: D;
 };
 
 export type _ConnectedMongoClient<D extends UnknownDataScheme> = Client<D, ClientStateConnected>;
@@ -42,54 +41,66 @@ declare const dbNameBrand: unique symbol;
 declare const dbCollectionsBrand: unique symbol;
 
 type Db<Collections> = MongoDb & {
-    [dbCollectionsBrand]: Collections;
+  [dbCollectionsBrand]: Collections;
 };
 
 export const client = <D extends UnknownDataScheme>(uri: string) =>
-    new MongoClient(uri, {
-        useNewUrlParser: true,
-        connectTimeoutMS: 1000 * 10,
-        useUnifiedTopology: true
-    }) as _DisconnectedMongoClient<D>;
+  new MongoClient(uri, {
+    useNewUrlParser: true,
+    connectTimeoutMS: 1000 * 10,
+    useUnifiedTopology: true,
+  }) as _DisconnectedMongoClient<D>;
 
 export const connect = <D extends UnknownDataScheme>(
-    client: _DisconnectedMongoClient<D>
+  client: _DisconnectedMongoClient<D>,
 ): TE.TaskEither<MongoError, _ConnectedMongoClient<D>> =>
-    TE.tryCatch(
-        () => client.connect() as Promise<_ConnectedMongoClient<D>>,
-        err => err as MongoError
-    );
+  TE.tryCatch(
+    () => client.connect() as Promise<_ConnectedMongoClient<D>>,
+    (err) => err as MongoError,
+  );
 
 export const db = <D extends UnknownDataScheme, N extends keyof D & string>(name: N) => (
-    client: _ConnectedMongoClient<D>
+  client: _ConnectedMongoClient<D>,
 ) => client.db(name) as Db<D[N]>;
 
 export const collection = <Cs extends {}, N extends keyof Cs & string>(name: N) => (db: Db<Cs>) =>
-    db.collection<Cs[N]>(name);
+  db.collection<Cs[N]>(name);
 
 export const close = <D extends UnknownDataScheme>(
-    client: _ConnectedMongoClient<D>
+  client: _ConnectedMongoClient<D>,
 ): TE.TaskEither<MongoError, void> =>
-    TE.tryCatch(
-        () => client.close(),
-        err => err as MongoError
-    );
+  TE.tryCatch(
+    () => client.close(),
+    (err) => err as MongoError,
+  );
 
 export const useMongo = (uri: string) => <A>(
-    use: <D extends UnknownDataScheme>(a: _ConnectedMongoClient<D>) => TE.TaskEither<Error, A>
-): TE.TaskEither<Error, A> => TE.bracket(pipe(uri, client, connect), use, client => close(client));
+  use: <D extends UnknownDataScheme>(a: _ConnectedMongoClient<D>) => TE.TaskEither<Error, A>,
+): TE.TaskEither<Error, A> =>
+  TE.bracket(pipe(uri, client, connect), use, (client) => close(client));
+
+export const flippedUseMongo = <D extends UnknownDataScheme, A>(
+  use: (a: _ConnectedMongoClient<D>) => TE.TaskEither<Error, A>,
+) => (uri: string): TE.TaskEither<Error, A> =>
+  TE.bracket(pipe(client<D>(uri), connect), use, close);
 
 export const insertMany = <A>(
-    ds: RNEA.ReadonlyNonEmptyArray<OptionalId<A>>,
-    o?: CollectionInsertManyOptions
+  ds: RNEA.ReadonlyNonEmptyArray<OptionalId<A>>,
+  o?: CollectionInsertManyOptions,
 ) => (c: Collection<A>) =>
-        TE.tryCatch(
-            () => c.insertMany(RA.toArray(ds), o),
-            err => err as MongoError
-        );
+  TE.tryCatch(
+    () => c.insertMany(RA.toArray(ds), o),
+    (err) => err as MongoError,
+  );
 
 export const deleteMany = <A>(q: FilterQuery<A>, o?: CommonOptions) => (c: Collection<A>) =>
-    TE.tryCatch(
-        () => c.deleteMany(q, o),
-        err => err as MongoError
-    );
+  TE.tryCatch(
+    () => c.deleteMany(q, o),
+    (err) => err as MongoError,
+  );
+
+export const find = <C>(q: FilterQuery<C>) => (c: Collection<C>) =>
+  TE.tryCatch(
+    () => c.find(q).toArray(),
+    (err) => err as MongoError,
+  );
