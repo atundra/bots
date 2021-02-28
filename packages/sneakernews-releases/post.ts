@@ -2,6 +2,8 @@ import * as O from 'fp-ts/lib/Option';
 import * as EQ from 'fp-ts/lib/Eq';
 import { getIntercalateSemigroup, semigroupString } from 'fp-ts/lib/Semigroup';
 import { showNumber } from 'fp-ts/lib/Show';
+import * as RNEA from 'fp-ts/lib/ReadonlyNonEmptyArray';
+import { pipe, identity } from 'fp-ts/lib/function';
 
 export type PostData = {
   name: string;
@@ -21,18 +23,10 @@ const ddmm = (d: Date): string =>
 export const isReleasedAt = (d: Date) => (p: PostData): boolean =>
   EQ.eqString.equals(p.dateString, ddmm(d));
 
-// static overall(posts: Post[]) {
-//   if (posts.length === 0) {
-//     return null;
-//   }
+const joinNewline = getIntercalateSemigroup('\n')(semigroupString);
 
-//   return posts
-//     .map((post) => {
-//       const { name, price, url } = post;
+const tgShowPost = ({ url, name, price }: PostData): string =>
+  `${url ? `[${name}](${url})` : name}${price ? ` – ${price}` : ''}`;
 
-//       return `${url ? `[${name}](${url})` : name}${
-//         price ? ` – ${price}` : ''
-//       }`;
-//     })
-//     .join('\n');
-// }
+export const tgShowPosts = (ps: RNEA.ReadonlyNonEmptyArray<PostData>): string =>
+  pipe(ps, RNEA.map(tgShowPost), RNEA.foldMap(joinNewline)(identity));
