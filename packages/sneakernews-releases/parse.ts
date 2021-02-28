@@ -7,6 +7,7 @@ import { pipe, unsafeCoerce } from 'fp-ts/lib/function';
 import * as RA from 'fp-ts/lib/ReadonlyArray';
 import * as O from 'fp-ts/lib/Option';
 import { querySelector } from './dom';
+import {PostData} from './post';
 
 const fetchText = fetchCustom({
   parser: textParser,
@@ -19,14 +20,6 @@ const elTextTrimmed = (e: Element): O.Option<string> =>
     O.fromNullable(e.textContent),
     O.map((c) => c.trim())
   );
-
-type PostData = {
-  name: string;
-  price: string;
-  url: string;
-  dateString: string;
-  img: O.Option<string>;
-};
 
 const postDataFromElement = (p: Element): O.Option<PostData> =>
   pipe(

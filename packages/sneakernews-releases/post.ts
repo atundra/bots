@@ -1,53 +1,38 @@
-type PostData = {
-  date: Date | null;
-  imgUrl: string | null;
-  name: string | null;
-  price: string | null;
-  url: string | null;
+import * as O from 'fp-ts/lib/Option';
+import * as EQ from 'fp-ts/lib/Eq';
+import { getIntercalateSemigroup, semigroupString } from 'fp-ts/lib/Semigroup';
+import { showNumber } from 'fp-ts/lib/Show';
+
+export type PostData = {
+  name: string;
+  price: string;
+  url: string;
+  dateString: string;
+  img: O.Option<string>;
 };
 
-class Post {
-  date: Date | null;
-  imgUrl: string | null;
-  name: string | null;
-  price: string | null;
-  url: string | null;
+// Do you know what overengineering is?
+const ddmm = (d: Date): string =>
+  getIntercalateSemigroup('.')(semigroupString).concat(
+    showNumber.show(d.getDate()).padStart(2, '0'),
+    showNumber.show(d.getMonth()).padStart(2, '0')
+  );
 
-  constructor(data: PostData) {
-    this.date = data.date;
-    this.imgUrl = data.imgUrl;
-    this.name = data.name;
-    this.price = data.price;
-    this.url = data.url;
-  }
+export const isReleasedAt = (d: Date) => (p: PostData): boolean =>
+  EQ.eqString.equals(p.dateString, ddmm(d));
 
-  isReleaseToday() {
-    if (!this.date) {
-      return false;
-    }
+// static overall(posts: Post[]) {
+//   if (posts.length === 0) {
+//     return null;
+//   }
 
-    const now = new Date();
-    return (
-      this.date.getDate() === now.getDate() &&
-      this.date.getMonth() === now.getMonth()
-    );
-  }
+//   return posts
+//     .map((post) => {
+//       const { name, price, url } = post;
 
-  static overall(posts: Post[]) {
-    if (posts.length === 0) {
-      return null;
-    }
-
-    return posts
-      .map((post) => {
-        const { name, price, url } = post;
-
-        return `${url ? `[${name}](${url})` : name}${
-          price ? ` – ${price}` : ''
-        }`;
-      })
-      .join('\n');
-  }
-}
-
-export default Post;
+//       return `${url ? `[${name}](${url})` : name}${
+//         price ? ` – ${price}` : ''
+//       }`;
+//     })
+//     .join('\n');
+// }

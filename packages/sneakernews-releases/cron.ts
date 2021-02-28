@@ -16,6 +16,7 @@ import * as RA from 'fp-ts/lib/ReadonlyArray';
 import * as RNEA from 'fp-ts/lib/ReadonlyNonEmptyArray';
 import * as MN from '@atundra/common/mongo';
 import { User } from './__user';
+import { parse } from './parse';
 
 const workWrapper = (user: User) => TE.tryCatch(() => work(user), E.toError);
 
@@ -47,9 +48,11 @@ export const cronJob = pipe(
     } as const)
   ),
 
+  TE.bind('currentDate', () => TE.fromIO(D.create)),
+
   // Calculate seconds from date starts (not really, @see getSecondsFromDayStart)
-  TE.bind('secondsFromDayStart', () =>
-    pipe(TE.fromIO<never, Date>(D.create), TE.map(getSecondsFromDayStart))
+  TE.bind('secondsFromDayStart', ({ currentDate }) =>
+    pipe(currentDate, getSecondsFromDayStart, TE.right)
   ),
   TE.chainFirst(({ secondsFromDayStart }) =>
     teLog(`Seconds from day start: ${secondsFromDayStart}`)
@@ -71,18 +74,20 @@ export const cronJob = pipe(
   ),
 
   // Refine users to be non empty list
-  TE.chainW((a) =>
+  TE.chainW(({ users, currentDate }) =>
     pipe(
-      a.users,
-      RNEA.fromArray,
+      RNEA.fromArray(users),
       O.fold(
         () => teLog('No user subscribed to recieve notifications now'),
-        (users) =>
-          pipe(
-            TE.right({ ...a, users }),
-            TE.chain(({ users }) => teLog(`${users.length} users found`))
-            // Now parse posts
-          )
+        flow(
+          TE.right,
+          TE.bindTo('users'),
+          TE.bind('posts', () => pipe(parse(), TE.map(RA.filter(isToday)))),
+          TE.chain(() => teLog('asd'))
+          // TE.chainFirst(({ users }) => teLog(`${users.length} users found`)),
+
+          // Now parse posts
+        )
       )
     )
   )
