@@ -111,8 +111,8 @@ export const promoteSuper = (uid: Uid) =>
   changeChatMemberPermissions(uid, {
     is_anonymous: false,
     can_manage_chat: true,
-    can_post_messages: true,
-    can_edit_messages: true,
+    can_post_messages: false,
+    can_edit_messages: false,
     can_delete_messages: true,
     can_manage_voice_chats: true,
     can_restrict_members: true,
