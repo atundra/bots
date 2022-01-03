@@ -79,15 +79,16 @@ export const cronJob = pipe(
       RNEA.fromArray(users),
       O.fold(
         () => teLog('No user subscribed to recieve notifications now'),
-        flow(
-          TE.right,
-          TE.bindTo('users'),
-          TE.bind('posts', () => pipe(parse(), TE.map(RA.filter(isToday)))),
-          TE.chain(() => teLog('asd'))
-          // TE.chainFirst(({ users }) => teLog(`${users.length} users found`)),
+        (us) =>
+          pipe(
+            TE.Do,
+            TE.bind('users', () => TE.of(us)),
+            TE.bind('posts', () => pipe(parse(), TE.map(RA.filter(isToday)))),
+            TE.chainW(() => teLog('asd'))
+            // TE.chainFirst(({ users }) => teLog(`${users.length} users found`)),
 
-          // Now parse posts
-        )
+            // Now parse posts
+          )
       )
     )
   )
