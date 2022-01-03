@@ -1,0 +1,17 @@
+{
+  "name": "xaotascript-servant",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "fp-ts": "^2.11.5",
+    "grammy": "^1.6.1"
+  },
+  "scripts": {
+    "dev": "ts-node main.ts"
+  }
+}
