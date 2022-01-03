@@ -1,10 +1,10 @@
 # XaotascriptServantBot
 
-- Promote user to admin (if you can)
+- Promote user to admin (and demote)
 - Change user's nickname
 
 ## Usage
 
-- /promote username or /promote with reply
-- /demote username or /demote with reply
-- /nickname username newnickname or /nickname newnickname with reply
+- /promote or /promote with reply
+- /demote or /demote with reply
+- /rename newnickname or /rename newnickname with reply
