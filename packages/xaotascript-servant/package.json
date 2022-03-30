@@ -9,12 +9,14 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^1.33.1",
     "fp-ts": "^2.11.5",
     "grammy": "^1.6.1"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node main.ts",
-    "start": "node dist/main.js"
+    "dev": "ENV=development ts-node main.ts",
+    "start": "node dist/main.js",
+    "update-types": "npx openapi-typescript https://dkcmgdwxlfowikrnxleg.supabase.co/rest/v1/?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrY21nZHd4bGZvd2lrcm54bGVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDg1ODE4NTksImV4cCI6MTk2NDE1Nzg1OX0.S6h8VP0S8m_6vVq7WGskgHagwJ6gGkHe8b1Ts97Kgtk --output supabase/database.ts"
   }
 }

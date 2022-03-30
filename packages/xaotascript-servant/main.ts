@@ -1,114 +1,43 @@
-import { Bot } from 'grammy';
-import { pipe } from 'fp-ts/function';
+import { identity, pipe } from 'fp-ts/function';
 import * as RTE from 'fp-ts/ReaderTaskEither';
-import { RTEfromReaderOption } from './utils';
-import {
-  readCallerId,
-  readAdmins,
-  throwIfNotAdmin,
-  readMyUid,
-  readTargetUid,
-  throwIfAlreadyAdmin,
-  promote,
-  demote,
-  readCommandText,
-  rename,
-  runHandler,
-  promoteSuper,
-} from './api';
+import * as TE from 'fp-ts/TaskEither';
+import * as O from 'fp-ts/Option';
+import { EnvType, orThrow, readAppSetting } from './utils';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getConfig } from './config';
+import { create, start } from './bot';
 
-const bot = new Bot(process.env.BOT_TOKEN!);
+const createRuntimeConfig = (env: EnvType, supabase: SupabaseClient) => ({
+  read(key: string): TE.TaskEither<Error, O.Option<string>> {
+    return readAppSetting(key)({ env, supabase });
+  },
 
-const promoteHandler = () =>
-  pipe(
-    RTE.Do,
-    RTE.bind('callerUid', () =>
-      pipe(RTEfromReaderOption(() => 'Чет не могу понять кто ты')(readCallerId())),
-    ),
-    RTE.bindW('admins', () => readAdmins()),
-    // check if caller is admin
-    RTE.chainFirstW(({ admins, callerUid }) =>
-      throwIfNotAdmin('Ты не админ, сперва получи промоут')(admins, callerUid),
-    ),
-    RTE.bindW('myUid', () => readMyUid()),
-    // check if bot is admin
-    RTE.chainFirstW(({ admins, myUid }) =>
-      throwIfNotAdmin('Я не админ, дай админку')(admins, myUid),
-    ),
-    // read target uid
-    RTE.bindW('targetUid', () => RTE.fromReaderEither(readTargetUid())),
-    // throw if already promoted
-    RTE.chainFirstW(({ admins, targetUid }) =>
-      throwIfAlreadyAdmin('Уже запромоучен')(admins, targetUid),
-    ),
-    // read command text
-    RTE.bindW('commandText', () => readCommandText()),
-    // promote target
-    RTE.chainFirstW(({ targetUid, commandText }) =>
-      commandText === 'super' ? promoteSuper(targetUid) : promote(targetUid),
-    ),
-  );
+  readRequired(key: string): TE.TaskEither<Error, string> {
+    return pipe(
+      readAppSetting(key),
+      RTE.chainOptionK(
+        () =>
+          new Error(
+            `${key} value is empty in a runtime config table, please add row with key ${key} and corresponding value`,
+          ),
+      )(identity),
+    )({ env, supabase });
+  },
+});
 
-const demoteHandler = () =>
-  pipe(
-    RTE.Do,
-    RTE.bind('callerUid', () =>
-      pipe(RTEfromReaderOption(() => 'Чет не могу понять кто ты')(readCallerId())),
-    ),
-    RTE.bindW('admins', () => readAdmins()),
-    // check if caller is admin
-    RTE.chainFirstW(({ admins, callerUid }) =>
-      throwIfNotAdmin('Ты не админ, сперва получи промоут')(admins, callerUid),
-    ),
-    RTE.bindW('myUid', () => readMyUid()),
-    // check if bot is admin
-    RTE.chainFirstW(({ admins, myUid }) =>
-      throwIfNotAdmin('Я не админ, дай админку')(admins, myUid),
-    ),
-    // read target uid
-    RTE.bindW('targetUid', () => RTE.fromReaderEither(readTargetUid())),
-    // throw if not admin
-    RTE.chainFirstW(({ admins, targetUid }) =>
-      throwIfNotAdmin('Да это и не админ так то')(admins, targetUid),
-    ),
-    // demote target
-    RTE.chainFirstW(({ targetUid }) => demote(targetUid)),
-  );
+const mainTask = pipe(
+  TE.Do,
+  TE.bind('processEnv', () => TE.fromIO(() => process.env)),
+  TE.bindW('config', ({ processEnv }) => TE.fromEither(getConfig(processEnv))),
+  TE.bindW('supabase', ({ config }) =>
+    TE.of(createClient(config.SUPABASE_URL, config.SUPABASE_KEY)),
+  ),
+  TE.bindW('runtimeConfig', ({ config, supabase }) =>
+    TE.of(createRuntimeConfig(config.ENV, supabase)),
+  ),
+  TE.bindW('botToken', ({ runtimeConfig }) => runtimeConfig.readRequired('BOT_TOKEN')),
 
-const renameHandler = () =>
-  pipe(
-    RTE.Do,
-    RTE.bind('callerUid', () =>
-      pipe(RTEfromReaderOption(() => 'Чет не могу понять кто ты')(readCallerId())),
-    ),
-    RTE.bindW('admins', () => readAdmins()),
-    // check if caller is admin
-    RTE.chainFirstW(({ admins, callerUid }) =>
-      throwIfNotAdmin('Ты не админ, сперва получи промоут')(admins, callerUid),
-    ),
-    RTE.bindW('myUid', () => readMyUid()),
-    // check if bot is admin
-    RTE.chainFirstW(({ admins, myUid }) =>
-      throwIfNotAdmin('Я не админ, дай админку')(admins, myUid),
-    ),
-    // read target uid
-    RTE.bindW('targetUid', () => RTE.fromReaderEither(readTargetUid())),
-    // throw if not admin
-    RTE.chainFirstW(({ admins, targetUid }) =>
-      throwIfNotAdmin('Цель не админ, нужен промоут')(admins, targetUid),
-    ),
-    // read command text
-    RTE.bindW('commandText', () => readCommandText()),
-    // rename target
-    RTE.chainFirstW(({ targetUid, commandText }) => rename(targetUid, commandText)),
-  );
+  TE.bindW('bot', ({ botToken }) => pipe(botToken, create, start)),
+);
 
-bot.command('start', (ctx) => ctx.reply('Прив!'));
-
-bot.command('promote', (ctx) => pipe(promoteHandler(), runHandler(ctx)));
-
-bot.command('demote', (ctx) => pipe(demoteHandler(), runHandler(ctx)));
-
-bot.command('rename', (ctx) => pipe(renameHandler(), runHandler(ctx)));
-
-bot.start();
+mainTask().then(orThrow).catch(console.error);
