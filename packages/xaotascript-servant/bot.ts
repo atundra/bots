@@ -105,11 +105,10 @@ const renameHandler = () =>
 
 export const create = (token: string) => {
   const bot = new Bot(token);
-  bot
-    .command('start', (ctx) => ctx.reply('Прив!'))
-    .command('promote', (ctx) => pipe(promoteHandler(), runHandler(ctx)))
-    .command('demote', (ctx) => pipe(demoteHandler(), runHandler(ctx)))
-    .command('rename', (ctx) => pipe(renameHandler(), runHandler(ctx)));
+  bot.command('start', (ctx) => ctx.reply('Прив!'));
+  bot.command('promote', (ctx) => pipe(promoteHandler(), runHandler(ctx)));
+  bot.command('demote', (ctx) => pipe(demoteHandler(), runHandler(ctx)));
+  bot.command('rename', (ctx) => pipe(renameHandler(), runHandler(ctx)));
   return bot;
 };
 
