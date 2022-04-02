@@ -230,6 +230,7 @@ const enableVideoMessageOnlyHandler = () =>
               ', ',
             )}.`,
         ),
+        RTE.map((a) => a.toLowerCase()),
       ),
     ),
     RTE.bindW('chatId', () =>
