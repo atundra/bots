@@ -37,7 +37,7 @@ const mainTask = pipe(
   ),
   TE.bindW('botToken', ({ runtimeConfig }) => runtimeConfig.readRequired('BOT_TOKEN')),
 
-  TE.bindW('bot', ({ botToken }) => pipe(botToken, create, start)),
+  TE.bindW('bot', ({ botToken, supabase }) => pipe(create(botToken, supabase), start)),
 );
 
 mainTask().then(orThrow).catch(console.error);

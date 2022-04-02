@@ -114,6 +114,105 @@ export interface paths {
       };
     };
   };
+  "/videoOnlyModeEnabled": {
+    get: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.videoOnlyModeEnabled.id"];
+          created_at?: parameters["rowFilter.videoOnlyModeEnabled.created_at"];
+          chat_id?: parameters["rowFilter.videoOnlyModeEnabled.chat_id"];
+          enabled_at_day?: parameters["rowFilter.videoOnlyModeEnabled.enabled_at_day"];
+          updated_at?: parameters["rowFilter.videoOnlyModeEnabled.updated_at"];
+          /** Filtering Columns */
+          select?: parameters["select"];
+          /** Ordering */
+          order?: parameters["order"];
+          /** Limiting and Pagination */
+          offset?: parameters["offset"];
+          /** Limiting and Pagination */
+          limit?: parameters["limit"];
+        };
+        header: {
+          /** Limiting and Pagination */
+          Range?: parameters["range"];
+          /** Limiting and Pagination */
+          "Range-Unit"?: parameters["rangeUnit"];
+          /** Preference */
+          Prefer?: parameters["preferCount"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["videoOnlyModeEnabled"][];
+        };
+        /** Partial Content */
+        206: unknown;
+      };
+    };
+    post: {
+      parameters: {
+        body: {
+          /** videoOnlyModeEnabled */
+          videoOnlyModeEnabled?: definitions["videoOnlyModeEnabled"];
+        };
+        query: {
+          /** Filtering Columns */
+          select?: parameters["select"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** Created */
+        201: unknown;
+      };
+    };
+    delete: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.videoOnlyModeEnabled.id"];
+          created_at?: parameters["rowFilter.videoOnlyModeEnabled.created_at"];
+          chat_id?: parameters["rowFilter.videoOnlyModeEnabled.chat_id"];
+          enabled_at_day?: parameters["rowFilter.videoOnlyModeEnabled.enabled_at_day"];
+          updated_at?: parameters["rowFilter.videoOnlyModeEnabled.updated_at"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** No Content */
+        204: never;
+      };
+    };
+    patch: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.videoOnlyModeEnabled.id"];
+          created_at?: parameters["rowFilter.videoOnlyModeEnabled.created_at"];
+          chat_id?: parameters["rowFilter.videoOnlyModeEnabled.chat_id"];
+          enabled_at_day?: parameters["rowFilter.videoOnlyModeEnabled.enabled_at_day"];
+          updated_at?: parameters["rowFilter.videoOnlyModeEnabled.updated_at"];
+        };
+        body: {
+          /** videoOnlyModeEnabled */
+          videoOnlyModeEnabled?: definitions["videoOnlyModeEnabled"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** No Content */
+        204: never;
+      };
+    };
+  };
 }
 
 export interface definitions {
@@ -141,6 +240,28 @@ export interface definitions {
      * @default production
      */
     env: string;
+  };
+  videoOnlyModeEnabled: {
+    /** Format: bigint */
+    id: number;
+    /**
+     * Format: timestamp with time zone
+     * @default now()
+     */
+    created_at?: string;
+    /**
+     * Format: character varying
+     * @description Note:
+     * This is a Primary Key.<pk/>
+     */
+    chat_id: string;
+    /** Format: character varying */
+    enabled_at_day?: string;
+    /**
+     * Format: timestamp without time zone
+     * @default now()
+     */
+    updated_at: string;
   };
 }
 
@@ -191,6 +312,18 @@ export interface parameters {
   "rowFilter.config.description": string;
   /** Format: character varying */
   "rowFilter.config.env": string;
+  /** @description videoOnlyModeEnabled */
+  "body.videoOnlyModeEnabled": definitions["videoOnlyModeEnabled"];
+  /** Format: bigint */
+  "rowFilter.videoOnlyModeEnabled.id": string;
+  /** Format: timestamp with time zone */
+  "rowFilter.videoOnlyModeEnabled.created_at": string;
+  /** Format: character varying */
+  "rowFilter.videoOnlyModeEnabled.chat_id": string;
+  /** Format: character varying */
+  "rowFilter.videoOnlyModeEnabled.enabled_at_day": string;
+  /** Format: timestamp without time zone */
+  "rowFilter.videoOnlyModeEnabled.updated_at": string;
 }
 
 export interface operations {}
