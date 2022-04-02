@@ -301,10 +301,10 @@ export const create = (token: string, supabase: SupabaseClient) => {
   bot.command('demote', (context) => pipe(demoteHandler(), runHandler({ context })));
   bot.command('rename', (context) => pipe(renameHandler(), runHandler({ context })));
 
-  bot.command('enableVideoMessageOnly', (context) =>
+  bot.command('enable_vmo', (context) =>
     pipe(enableVideoMessageOnlyHandler(), runHandler({ context, client: supabase, VMOService })),
   );
-  bot.command('disableVideoMessageOnly', (context) =>
+  bot.command('disable_vmo', (context) =>
     pipe(
       disableVideoMessageOnlyHandler(),
       runHandler({ context, client: supabase, VMOService }, 'Убрал'),
