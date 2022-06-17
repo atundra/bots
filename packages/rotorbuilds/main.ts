@@ -9,6 +9,7 @@ import { fetchText } from 'fp-fetch';
 import * as T from 'fp-ts/Task';
 import * as TE from 'fp-ts/TaskEither';
 import * as IO from 'fp-ts/IO';
+import * as O from 'fp-ts/Option';
 import * as Console from 'fp-ts/Console';
 import * as RTE from 'fp-ts/ReaderTaskEither';
 import * as RA from 'fp-ts/ReadonlyArray';
@@ -19,14 +20,21 @@ import * as Eq from 'fp-ts/lib/Eq';
 import { sendPhoto, telegram, ChatIdT, sendMessage } from './tg';
 import { Extra } from 'telegraf';
 import { escapeHtml } from './escape';
+import { sequenceS } from 'fp-ts/lib/Apply';
 
 const jsdom = (o: ConstructorOptions) => (s: string) => new JSDOM(s, o);
 
 const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error('Provide MONGO_URI');
+}
 const pageUrl = () => 'https://rotorbuilds.com/builds';
 const chatId = () => Number(process.env.CHAT_ID);
 const errorNotificationChatId = () => Number(process.env.ERRORS_CHAT_ID);
-const telegramToken = () => process.env.TELEGRAM_TOKEN;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+if (!TELEGRAM_TOKEN) {
+  throw new Error('Provide TELEGRAM_TOKEN');
+}
 const dbName = () => 'vercel-lambdas';
 const collectionName = () => 'rotorbuilds-posts';
 
@@ -36,6 +44,8 @@ type RBPost = {
   name: string;
   author: string;
 };
+
+const seqO = sequenceS(O.Applicative);
 
 const getLatestBuilds = (url: string): TE.TaskEither<Error, ReadonlyArray<RBPost>> =>
   pipe(
@@ -48,15 +58,20 @@ const getLatestBuilds = (url: string): TE.TaskEither<Error, ReadonlyArray<RBPost
     TE.map((dom) => Array.from(dom.window.document.querySelectorAll('#act_list > div'))),
 
     // for every item get rbpost data
-    TE.map(
-      // Looks like there should be a code which validate if markup is ok for parsing purposes
-      RA.map((el) => ({
-        img: el.querySelector('img').src,
-        link: el.querySelector('a').href,
-        name: el.querySelector('.act-title').textContent,
-        author: el.querySelector('.act-user').textContent,
-      }))
-    )
+    TE.chain((postElements) =>
+      pipe(
+        postElements,
+        RA.map((el) => ({
+          img: O.fromNullable(el.querySelector('img')?.src),
+          link: O.fromNullable(el.querySelector('a')?.href),
+          name: O.fromNullable(el.querySelector('.act-title')?.textContent),
+          author: O.fromNullable(el.querySelector('.act-user')?.textContent),
+        })),
+        RA.map(seqO),
+        O.sequenceArray,
+        TE.fromOption(() => new Error('Some of the posts lack a content')),
+      ),
+    ),
   );
 
 const useMongo = mongo.useMongo(MONGO_URI);
@@ -70,7 +85,7 @@ const existingPostsQuery = (posts: ReadonlyArray<RBPost>): FilterQuery<RBPost> =
       link: {
         $in: links,
       },
-    })
+    }),
   );
 
 const rbPostEq: Eq.Eq<RBPost> = Eq.getStructEq({
@@ -87,10 +102,10 @@ const sendRbPost = (tgToken: string) => (chatId: ChatIdT) => (post: RBPost) =>
       // @ts-ignore
       Extra.caption(
         `<b>${escapeHtml(post.name)}</b>\n${escapeHtml(post.author)}\n\n<a href="${escapeHtml(
-          post.link
-        )}">${escapeHtml(post.link)}</a>`
-      ).HTML(true)
-    )
+          post.link,
+        )}">${escapeHtml(post.link)}</a>`,
+      ).HTML(true),
+    ),
   );
 
 const sendText = (tgToken: string) => (chatId: ChatIdT) => (text: string) =>
@@ -114,26 +129,36 @@ const main = pipe(
           RTE.map((existingPosts) => RA.difference(rbPostEq)(existingPosts)(posts)),
           // here we have readonly array of new posts
           // send them to tg
-          RTE.chainFirst((posts) => () =>
-            pipe(
-              posts,
-              RA.map(sendRbPost(telegramToken())(chatId())),
-              RA.sequence(TE.taskEitherSeq)
-            )
+          RTE.chainFirst(
+            (posts) => () =>
+              pipe(
+                posts,
+                TE.traverseSeqArray((post) =>
+                  pipe(
+                    sendRbPost(TELEGRAM_TOKEN)(chatId())(post),
+                    TE.mapLeft(
+                      (err: unknown) =>
+                        new Error(`Failed to send post ${JSON.stringify(post)}:\n${err}`),
+                    ),
+                  ),
+                ),
+                // RA.sequence(TE.taskEitherSeq),
+              ),
           ),
           // and finnaly save them to db
-          RTE.chainFirst((posts) => (collection) =>
-            RA.isNonEmpty(posts) ? mongo.insertMany(posts)(collection) : TE.right({})
-          )
-        )
-      )
-    )
+          RTE.chainFirst(
+            (posts) => (collection) =>
+              RA.isNonEmpty(posts) ? mongo.insertMany(posts)(collection) : TE.right({}),
+          ),
+        ),
+      ),
+    ),
   ),
   TE.fold(
     // Send message to error reporting chat if there is an error
     (e) =>
       pipe(
-        sendText(telegramToken())(errorNotificationChatId())(e.toString()),
+        sendText(TELEGRAM_TOKEN)(errorNotificationChatId())(e.toString()),
         // and then log error
         TE.fold(
           // If error occurs while trying to send report – log it and then log original error
@@ -141,16 +166,16 @@ const main = pipe(
             T.fromIO(
               pipe(
                 Console.error(e2),
-                IO.chain(() => Console.error(e))
-              )
+                IO.chain(() => Console.error(e)),
+              ),
             ),
           // Otherwise log only original error
-          () => T.fromIO(Console.error(e))
-        )
+          () => T.fromIO(Console.error(e)),
+        ),
       ),
     // Or just log out new posts list
-    T.fromIOK(Console.log)
-  )
+    T.fromIOK(Console.log),
+  ),
 );
 
 main();
