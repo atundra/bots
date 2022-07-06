@@ -17,10 +17,13 @@ import { ConstructorOptions, JSDOM } from 'jsdom';
 import * as mongo from './mongo';
 import { Collection, FilterQuery } from 'mongodb';
 import * as Eq from 'fp-ts/lib/Eq';
-import { sendPhoto, telegram, ChatIdT, sendMessage } from './tg';
+import { sendPhoto, telegram, ChatIdT, sendMessage, sendMediaGroup } from './tg';
 import { Extra } from 'telegraf';
 import { escapeHtml } from './escape';
 import { sequenceS } from 'fp-ts/lib/Apply';
+import * as RNEA from 'fp-ts/lib/ReadonlyNonEmptyArray';
+import { ArrayOf2PlusN, mapArrayOf2PlusN } from './utils';
+import { InputMediaPhoto } from 'telegraf/typings/telegram-types';
 
 const jsdom = (o: ConstructorOptions) => (s: string) => new JSDOM(s, o);
 
@@ -37,12 +40,15 @@ if (!TELEGRAM_TOKEN) {
 }
 const dbName = () => 'vercel-lambdas';
 const collectionName = () => 'rotorbuilds-posts';
+const PICS_PER_POST = 7;
 
 type RBPost = {
   img: string;
   link: string;
   name: string;
   author: string;
+  // images from post, urls
+  imgs: O.Option<RNEA.ReadonlyNonEmptyArray<string>>;
 };
 
 const seqO = sequenceS(O.Applicative);
@@ -66,11 +72,24 @@ const getLatestBuilds = (url: string): TE.TaskEither<Error, ReadonlyArray<RBPost
           link: O.fromNullable(el.querySelector('a')?.href),
           name: O.fromNullable(el.querySelector('.act-title')?.textContent),
           author: O.fromNullable(el.querySelector('.act-user')?.textContent),
+          imgs: O.some(O.none),
         })),
         RA.map(seqO),
         O.sequenceArray,
         TE.fromOption(() => new Error('Some of the posts lack a content')),
       ),
+    ),
+  );
+
+const getBuildPics = (buildUrl: string): TE.TaskEither<Error, readonly string[]> =>
+  pipe(
+    buildUrl,
+    fetchText,
+    TE.map(jsdom({ url: buildUrl })),
+    TE.map((dom) =>
+      Array.from(
+        dom.window.document.querySelectorAll<HTMLImageElement>('#screenshots .image_preview img'),
+      ).map((item) => item.src),
     ),
   );
 
@@ -92,21 +111,52 @@ const rbPostEq: Eq.Eq<RBPost> = Eq.getStructEq({
   link: Eq.eqString,
 });
 
-const sendRbPost = (tgToken: string) => (chatId: ChatIdT) => (post: RBPost) =>
-  pipe(
+const sendRbPost = (tgToken: string) => (chatId: ChatIdT) => (post: RBPost) => {
+  const imgsCountMoreThan2 = pipe(post.imgs, O.map(RA.toArray), O.chain(ArrayOf2PlusN));
+
+  return pipe(
     telegram(tgToken),
-    sendPhoto(
-      chatId,
-      post.img,
-      // I have no idea what's going on with Extra here
-      // @ts-ignore
-      Extra.caption(
-        `<b>${escapeHtml(post.name)}</b>\n${escapeHtml(post.author)}\n\n<a href="${escapeHtml(
-          post.link,
-        )}">${escapeHtml(post.link)}</a>`,
-      ).HTML(true),
+    pipe(
+      imgsCountMoreThan2,
+      O.fold(
+        // if there are 1 pic or no pics
+        // send just one photo
+        () =>
+          sendPhoto(
+            chatId,
+            post.img,
+            // I have no idea what's going on with Extra here
+            // @ts-ignore
+            Extra.caption(
+              `<b>${escapeHtml(post.name)}</b>\n${escapeHtml(post.author)}\n\n<a href="${escapeHtml(
+                post.link,
+              )}">${escapeHtml(post.link)}</a>`,
+            ).HTML(true),
+          ),
+        // if there are 2 or more pics
+        // send photo album
+        (urls) =>
+          sendMediaGroup(
+            chatId,
+            pipe(
+              urls,
+              mapArrayOf2PlusN<string, InputMediaPhoto>((url, i) => ({
+                type: 'photo',
+                media: url,
+                caption:
+                  i === 0
+                    ? `<b>${escapeHtml(post.name)}</b>\n${escapeHtml(
+                        post.author,
+                      )}\n\n<a href="${escapeHtml(post.link)}">${escapeHtml(post.link)}</a>`
+                    : undefined,
+                parse_mode: 'HTML',
+              })),
+            ),
+          ),
+      ),
     ),
   );
+};
 
 const sendText = (tgToken: string) => (chatId: ChatIdT) => (text: string) =>
   pipe(tgToken, telegram, sendMessage(chatId, text));
@@ -128,6 +178,20 @@ const main = pipe(
           RTE.map(RA.fromArray),
           RTE.map((existingPosts) => RA.difference(rbPostEq)(existingPosts)(posts)),
           // here we have readonly array of new posts
+          RTE.chainTaskEitherKW((posts) =>
+            pipe(
+              posts,
+              TE.traverseSeqArray((post) =>
+                pipe(
+                  getBuildPics(post.link),
+                  TE.map((images) => ({
+                    ...post,
+                    imgs: RNEA.fromArray(images.slice(0, PICS_PER_POST)),
+                  })),
+                ),
+              ),
+            ),
+          ),
           // send them to tg
           RTE.chainFirst(
             (posts) => () =>
