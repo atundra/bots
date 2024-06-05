@@ -1,4 +1,4 @@
-FROM node:14.15-alpine
+FROM node:14.15
 
 WORKDIR /usr/src/app
 COPY ./aestheticize/package*.json ./
