@@ -1,4 +1,5 @@
-FROM node:20.9.0-alpine
+# alpine version hangs on npm ci command
+FROM node:20
 
 WORKDIR /usr/src/app
 COPY ./gh-issue/package*.json ./
